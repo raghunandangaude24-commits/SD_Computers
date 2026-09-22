@@ -1,0 +1,1000 @@
+/* =========================================
+   GLOBAL
+========================================= */
+
+:root {
+  color: #f7f7fb;
+  background: #020914;
+  font-family: Inter, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #020914;
+}
+
+
+/* =========================================
+   AUTH PAGE
+========================================= */
+
+.auth-page {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  position: relative;
+
+  padding: 34px 20px 34px;
+
+  background:
+    radial-gradient(circle at 50% 40%,
+      rgba(91, 32, 180, 0.16),
+      transparent 35%),
+    #020914;
+}
+
+
+/* =========================================
+   LOGO
+========================================= */
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  margin-top: auto;
+
+  margin-bottom: 14px;
+}
+
+.logo-mark {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #a33cff;
+
+  font-size: 34px;
+
+  text-shadow:
+    0 0 10px rgba(150, 50, 255, 0.9),
+    0 0 25px rgba(150, 50, 255, 0.5);
+}
+
+.logo-text strong {
+  display: block;
+
+  color: #f5f7fb;
+
+  font-size: 19px;
+  font-weight: 700;
+
+  letter-spacing: 0.2px;
+}
+
+.logo-text small {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #94a4bb;
+
+  font-size: 8px;
+
+  letter-spacing: 0.7px;
+}
+
+
+/* =========================================
+   AUTH CARD
+   SAME SIZE FOR LOGIN + REGISTER
+========================================= */
+
+.auth-card {
+  width: 400px;
+  max-width: 100%;
+
+  padding: 32px;
+
+  border: 1px solid #1a395d;
+  border-radius: 12px;
+
+  background:
+    linear-gradient(145deg,
+      rgba(5, 18, 34, 0.98),
+      rgba(3, 13, 26, 0.98));
+
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.45),
+    0 0 40px rgba(75, 20, 150, 0.08);
+}
+
+
+/*
+   Register uses the exact same width
+   and appearance as Login.
+*/
+.register-card {
+  width: 400px;
+  max-width: 100%;
+}
+
+
+/* =========================================
+   FORM HEADING
+========================================= */
+
+.auth-card h1 {
+  margin: 0 0 12px;
+
+  color: #f7f8fb;
+
+  font-size: 26px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.auth-card>p {
+  margin: 0 0 28px;
+
+  color: #a0aec2;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+
+/* =========================================
+   INPUT
+========================================= */
+
+.auth-input {
+  width: 100%;
+  height: 54px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  margin: 16px 0;
+  padding: 0 14px;
+
+  border: 1px solid #1b395d;
+  border-radius: 7px;
+
+  background: #07182c;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+
+/* Lucide icons */
+
+.auth-input>svg {
+  width: 19px;
+  height: 19px;
+
+  flex-shrink: 0;
+
+  fill: none;
+  stroke: #aab7c9;
+  stroke-width: 1.7;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+
+/* Input focus */
+
+.auth-input:focus-within {
+  border-color: #923cff;
+
+  background: #081a30;
+
+  box-shadow:
+    0 0 0 1px rgba(146, 60, 255, 0.2),
+    0 0 18px rgba(128, 40, 255, 0.15);
+}
+
+
+/* Input field */
+
+.auth-input input {
+  width: 100%;
+  min-width: 0;
+
+  padding: 0;
+
+  border: 0;
+  outline: 0;
+
+  color: #ffffff;
+
+  background: transparent;
+
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.auth-input input::placeholder {
+  color: #70839f;
+}
+
+
+/* =========================================
+   PASSWORD TOGGLE
+========================================= */
+
+.password-toggle {
+  width: 25px;
+  height: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border: 0;
+
+  color: #788ba5;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.password-toggle svg {
+  width: 17px;
+  height: 17px;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.password-toggle:hover {
+  color: #b58aff;
+}
+
+
+/* =========================================
+   REMEMBER / FORGOT PASSWORD
+========================================= */
+
+.auth-options {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 20px;
+
+  color: #bac5d6;
+
+  font-size: 12px;
+}
+
+.remember {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  cursor: pointer;
+
+  user-select: none;
+}
+
+.remember input {
+  width: 17px;
+  height: 17px;
+
+  margin: 0;
+
+  cursor: pointer;
+
+  accent-color: #8b2dff;
+}
+
+.auth-options a {
+  color: #a33cff;
+
+  text-decoration: none;
+
+  font-weight: 500;
+}
+
+.auth-options a:hover {
+  color: #bd79ff;
+}
+
+
+/* =========================================
+   PRIMARY BUTTON
+   SAME FOR LOGIN + REGISTER
+========================================= */
+
+.primary-button {
+  width: 100%;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  margin-top: 24px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 7px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(100deg,
+      #6922f5,
+      #962bff);
+
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+.primary-button svg {
+  width: 17px;
+  height: 17px;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.primary-button:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 0 25px rgba(143, 40, 255, 0.45);
+
+  filter: brightness(1.05);
+}
+
+.primary-button:active {
+  transform: translateY(0);
+}
+
+
+/* =========================================
+   FORM MESSAGES
+   ERROR + SUCCESS BANNERS
+========================================= */
+
+.auth-message {
+  width: 100%;
+
+  padding: 11px 14px;
+
+  margin-top: 14px;
+
+  border-radius: 7px;
+
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.auth-message.error {
+  border: 1px solid rgba(255, 86, 104, 0.35);
+
+  background: rgba(120, 18, 34, 0.28);
+
+  color: #ffb3bc;
+}
+
+.auth-message.success {
+  border: 1px solid rgba(56, 217, 132, 0.35);
+
+  background: rgba(14, 74, 45, 0.28);
+
+  color: #9ff0bd;
+}
+
+.primary-button:disabled {
+  opacity: 0.65;
+
+  cursor: not-allowed;
+
+  transform: none;
+
+  filter: none;
+
+  box-shadow: none;
+}
+
+
+/* =========================================
+   DIVIDER
+   LOGIN PAGE
+========================================= */
+
+.divider {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  margin: 24px 0;
+
+  color: #8796ab;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+
+  height: 1px;
+
+  flex: 1;
+
+  background: #1b385a;
+}
+
+
+/* =========================================
+   SOCIAL BUTTONS
+   LOGIN PAGE
+========================================= */
+
+.social-buttons {
+  width: 100%;
+
+  display: flex;
+
+  gap: 12px;
+}
+
+.social-buttons button {
+  flex: 1;
+
+  height: 47px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 0 10px;
+
+  border: 1px solid #1b395d;
+  border-radius: 7px;
+
+  color: #ffffff;
+
+  background: #07182c;
+
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 500;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.social-buttons button:hover {
+  border-color: #7430bd;
+
+  background: #0b1d34;
+
+  transform: translateY(-1px);
+}
+
+.social-buttons button:active {
+  transform: translateY(0);
+}
+
+
+/* =========================================
+   SOCIAL ICONS
+========================================= */
+
+.brand-icon {
+  width: 17px;
+  height: 17px;
+
+  flex-shrink: 0;
+}
+
+.github-icon {
+  color: #ffffff;
+}
+
+
+/* =========================================
+   PHONE ROW
+   REGISTER PAGE
+========================================= */
+
+.phone-row {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.phone-row select {
+  width: 82px;
+  height: 54px;
+
+  flex-shrink: 0;
+
+  padding: 0 10px;
+
+  border: 1px solid #1b395d;
+  border-radius: 7px;
+
+  outline: none;
+
+  color: #ffffff;
+
+  background: #07182c;
+
+  font-family: inherit;
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+.phone-row select:focus {
+  border-color: #923cff;
+
+  box-shadow:
+    0 0 0 1px rgba(146, 60, 255, 0.2);
+}
+
+
+/*
+   The phone input should have the
+   same height and spacing as every
+   other input.
+*/
+
+.phone-row .auth-input {
+  flex: 1;
+
+  margin: 16px 0;
+}
+
+
+/* =========================================
+   TERMS & CONDITIONS
+   REGISTER PAGE
+========================================= */
+
+.terms {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+
+  margin-top: 20px;
+
+  color: #aebacc;
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.terms input {
+  width: 15px;
+  height: 15px;
+
+  flex-shrink: 0;
+
+  margin-top: 2px;
+
+  accent-color: #8d2fff;
+
+  cursor: pointer;
+}
+
+.terms a {
+  color: #a23cff;
+
+  text-decoration: none;
+}
+
+.terms a:hover {
+  color: #bd79ff;
+}
+
+
+/* =========================================
+   REGISTER BUTTON
+   SAME SPACING AS LOGIN
+========================================= */
+
+.register-card .primary-button {
+  margin-top: 26px;
+}
+
+
+/* =========================================
+   FORM FOOTER
+   LOGIN + REGISTER
+========================================= */
+
+.auth-card footer {
+  margin-top: 28px;
+
+  color: #8e9db3;
+
+  text-align: center;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.auth-card footer a {
+  margin-left: 7px;
+
+  color: #a53cff;
+
+  text-decoration: none;
+
+  font-weight: 600;
+}
+
+.auth-card footer a:hover {
+  color: #bd79ff;
+}
+
+
+/* =========================================
+   COPYRIGHT
+========================================= */
+
+.copyright {
+  margin-top: 25px;
+  margin-bottom: auto;
+
+  color: #71829a;
+
+  text-align: center;
+
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 600px) {
+
+  .auth-page {
+    padding: 30px 16px 22px;
+  }
+
+
+  /* Logo */
+
+  .auth-logo {
+    margin-bottom: 24px;
+  }
+
+  .logo-mark {
+    width: 38px;
+    height: 38px;
+
+    font-size: 30px;
+  }
+
+  .logo-text strong {
+    font-size: 17px;
+  }
+
+  .logo-text small {
+    font-size: 7px;
+  }
+
+
+  /* Card */
+
+  .auth-card {
+    width: 100%;
+    max-width: 400px;
+
+    padding: 25px 20px;
+  }
+
+
+  /* Heading */
+
+  .auth-card h1 {
+    font-size: 24px;
+  }
+
+  .auth-card>p {
+    font-size: 12px;
+  }
+
+
+  /* Social buttons */
+
+  .social-buttons {
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+  .social-buttons button {
+    width: 100%;
+  }
+
+
+  /* Phone */
+
+  .phone-row {
+    gap: 8px;
+  }
+
+  .phone-row select {
+    width: 75px;
+  }
+
+
+  /* Copyright */
+
+  .copyright {
+    margin-top: 22px;
+  }
+}
+
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 400px) {
+
+  .auth-page {
+    padding: 25px 12px 20px;
+  }
+
+  .auth-card {
+    padding: 24px 18px;
+
+    border-radius: 10px;
+  }
+
+  .auth-card h1 {
+    font-size: 23px;
+  }
+
+  .auth-input {
+    height: 52px;
+  }
+
+  .auth-options {
+    font-size: 11px;
+  }
+
+  .primary-button {
+    height: 50px;
+  }
+
+  .phone-row select {
+    width: 70px;
+
+    padding: 0 7px;
+  }
+}
+
+
+/* =========================================
+   FIT SHORT SCREENS (LAPTOP)
+   Compresses vertical spacing ONLY on
+   short viewports so the Login / Register
+   card fits without scrolling. Taller
+   screens keep the original design.
+========================================= */
+
+@media (max-height: 900px) {
+
+  .auth-page {
+    padding: 22px 20px 22px;
+  }
+
+  .auth-logo {
+    margin-bottom: 10px;
+  }
+
+  .auth-card {
+    padding: 26px;
+  }
+
+  .auth-card>p {
+    margin-bottom: 20px;
+  }
+
+  .auth-input {
+    height: 50px;
+
+    margin: 9px 0;
+  }
+
+  .phone-row .auth-input {
+    margin: 9px 0;
+  }
+
+  .phone-row select {
+    height: 50px;
+  }
+
+  .auth-options {
+    margin-top: 12px;
+  }
+
+  .primary-button {
+    margin-top: 20px;
+  }
+
+  .register-card .primary-button {
+    margin-top: 20px;
+  }
+
+  .divider {
+    margin: 18px 0;
+  }
+
+  .auth-card footer {
+    margin-top: 22px;
+  }
+
+  .copyright {
+    margin-top: 20px;
+  }
+}
+
+
+@media (max-height: 760px) {
+
+  .auth-page {
+    padding: 15px 16px 15px;
+  }
+
+  .auth-logo {
+    margin-bottom: 8px;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+
+    font-size: 28px;
+  }
+
+  .auth-card {
+    padding: 18px;
+  }
+
+  .auth-card h1 {
+    margin-bottom: 6px;
+
+    font-size: 23px;
+  }
+
+  .auth-card>p {
+    margin-bottom: 14px;
+
+    font-size: 12px;
+  }
+
+  .auth-input {
+    height: 46px;
+
+    margin: 6px 0;
+
+    padding: 0 12px;
+  }
+
+  .phone-row .auth-input {
+    margin: 6px 0;
+  }
+
+  .phone-row select {
+    height: 46px;
+  }
+
+  .auth-options {
+    margin-top: 8px;
+  }
+
+  .primary-button {
+    height: 48px;
+
+    margin-top: 14px;
+
+    font-size: 12px;
+  }
+
+  .register-card .primary-button {
+    margin-top: 14px;
+  }
+
+  .terms {
+    margin-top: 10px;
+  }
+
+  .divider {
+    margin: 13px 0;
+  }
+
+  .social-buttons button {
+    height: 42px;
+  }
+
+  .auth-card footer {
+    margin-top: 15px;
+  }
+
+  .copyright {
+    margin-top: 12px;
+  }
+}
