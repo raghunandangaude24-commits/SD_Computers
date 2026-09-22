@@ -1,3 +1,4 @@
+import { Fragment, useEffect, useState } from "react";
 import {
     ArrowLeft,
     Search,
@@ -15,94 +16,11 @@ import {
     X,
 } from "lucide-react";
 
-import "../styles/searchresults.css";
+import "../styles/SearchResults.css";
+import { searchProducts } from "../services/searchService.js";
+import { authService } from "../services/authService.js";
 
-
-// ======================================================
-// PRODUCTS
-// ======================================================
-
-const products = [
-    {
-        id: 1,
-        name: "MSI GeForce RTX 4060 Ventus 2X 8GB GDDR6",
-        image: "/products/msi-rtx-4060.png",
-        price: "₹34,999",
-        oldPrice: "₹37,999",
-        discount: "8% OFF",
-        brand: "MSI",
-    },
-
-    {
-        id: 2,
-        name: "Gigabyte GeForce RTX 4060 Eagle 8GB GDDR6",
-        image: "/products/gigabyte-rtx-4060.png",
-        price: "₹33,499",
-        oldPrice: "₹36,999",
-        discount: "9% OFF",
-        brand: "Gigabyte",
-    },
-
-    {
-        id: 3,
-        name: "ASUS Dual GeForce RTX 4060 8GB GDDR6",
-        image: "/products/asus-rtx-4060.png",
-        price: "₹34,499",
-        oldPrice: "₹38,999",
-        discount: "11% OFF",
-        brand: "ASUS",
-    },
-
-    {
-        id: 4,
-        name: "Zotac Gaming GeForce RTX 4060 Twin Edge 8GB GDDR6",
-        image: "/products/zotac-rtx-4060.png",
-        price: "₹32,999",
-        oldPrice: "₹36,499",
-        discount: "10% OFF",
-        brand: "Zotac",
-    },
-
-    {
-        id: 5,
-        name: "Palit GeForce RTX 4060 Dual 8GB GDDR6",
-        image: "/products/palit-rtx-4060.png",
-        price: "₹32,499",
-        oldPrice: "₹35,999",
-        discount: "10% OFF",
-        brand: "Palit",
-    },
-
-    {
-        id: 6,
-        name: "Inno3D GeForce RTX 4060 TWIN X2 8GB GDDR6",
-        image: "/products/inno3d-rtx-4060.png",
-        price: "₹31,999",
-        oldPrice: "₹35,499",
-        discount: "10% OFF",
-        brand: "Inno3D",
-    },
-
-    {
-        id: 7,
-        name: "ASUS TUF Gaming GeForce RTX 4060 8GB GDDR6",
-        image: "/products/asus-tuf-rtx-4060.png",
-        price: "₹36,999",
-        oldPrice: null,
-        discount: null,
-        brand: "ASUS",
-    },
-
-    {
-        id: 8,
-        name: "Gigabyte RTX 4060 Gaming OC 8GB GDDR6",
-        image: "/products/gigabyte-gaming-rtx-4060.png",
-        price: "₹38,499",
-        oldPrice: "₹42,999",
-        discount: "10% OFF",
-        brand: "Gigabyte",
-    },
-];
+const RESULTS_PER_PAGE = 12;
 
 
 // ======================================================
@@ -153,10 +71,10 @@ const categories = [
 
 
 // ======================================================
-// BRANDS
+// DEFAULT BRANDS (shown until the backend provides facets)
 // ======================================================
 
-const brands = [
+const defaultBrands = [
     ["MSI", 4],
     ["ASUS", 3],
     ["Gigabyte", 3],
@@ -170,6 +88,189 @@ const brands = [
 // ======================================================
 
 export default function SearchResults() {
+
+    const [input, setInput] = useState("rtx 4060");
+    const [searchTerm, setSearchTerm] = useState("rtx 4060");
+    const [category, setCategory] = useState(null);
+    const [selectedBrands, setSelectedBrands] = useState([]);
+    const [sort, setSort] = useState("relevance");
+    const [page, setPage] = useState(1);
+
+    const [results, setResults] = useState([]);
+    const [pagination, setPagination] = useState({
+        page: 1,
+        limit: RESULTS_PER_PAGE,
+        total: 0,
+        totalPages: 0,
+    });
+    const [brandFacets, setBrandFacets] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [retryCount, setRetryCount] = useState(0);
+
+    const user = authService.getUser();
+    const userName = user?.name || "Raghav";
+    const userInitial = (user?.name || "H").trim().charAt(0).toUpperCase() || "H";
+
+    const brandList = brandFacets && brandFacets.length > 0
+        ? brandFacets.map((item) => [item.name, item.count])
+        : defaultBrands;
+
+    useEffect(() => {
+        let cancelled = false;
+
+        searchProducts({
+            q: searchTerm,
+            category: category || undefined,
+            brand: selectedBrands.length > 0 ? selectedBrands : undefined,
+            sort,
+            page,
+            limit: RESULTS_PER_PAGE,
+        })
+            .then((data) => {
+                if (cancelled) return;
+                setResults(data.results ?? []);
+                setPagination(data.pagination ?? {});
+                if (Array.isArray(data.brands)) setBrandFacets(data.brands);
+                setError(null);
+                setLoading(false);
+            })
+            .catch((err) => {
+                if (cancelled) return;
+                setError(err.message || "Failed to load search results.");
+                setLoading(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [searchTerm, category, selectedBrands, sort, page, retryCount]);
+
+    const submitSearch = (event) => {
+        event.preventDefault();
+        const term = input.trim();
+        setError(null);
+        if (term !== searchTerm) {
+            setSearchTerm(term);
+            setPage(1);
+        }
+    };
+
+    const selectCategory = (index) => {
+        setError(null);
+        setCategory(index === 0 ? null : categories[index].name);
+        setPage(1);
+    };
+
+    const toggleBrand = (brand) => {
+        setError(null);
+        setSelectedBrands((current) =>
+            current.includes(brand)
+                ? current.filter((item) => item !== brand)
+                : [...current, brand]
+        );
+        setPage(1);
+    };
+
+    const clearFilters = () => {
+        setError(null);
+        setCategory(null);
+        setSelectedBrands([]);
+        setPage(1);
+    };
+
+    const changePage = (nextPage) => {
+        if (nextPage < 1 || nextPage > pagination.totalPages) return;
+        setError(null);
+        setPage(nextPage);
+    };
+
+    let productArea;
+    if (error) {
+        productArea = (
+            <div className="search-status error">
+                <p>{error}</p>
+                <button
+                    type="button"
+                    className="retry-button"
+                    onClick={() => setRetryCount((count) => count + 1)}
+                >
+                    Try again
+                </button>
+            </div>
+        );
+    } else if (loading) {
+        productArea = (
+            <div className="search-status">
+                Loading products...
+            </div>
+        );
+    } else if (results.length === 0) {
+        productArea = (
+            <div className="search-status">
+                <p>
+                    No products found for{" "}
+                    <strong>"{searchTerm}"</strong>.
+                </p>
+                <p>
+                    Try a different keyword, or clear the filters.
+                </p>
+            </div>
+        );
+    } else {
+        productArea = (
+            <>
+                <div className="product-grid">
+                    {results.map((product) => (
+                        <ProductCard
+                            key={product.id}
+                            product={product}
+                        />
+                    ))}
+                </div>
+
+                {pagination.totalPages > 1 && (
+                    <div className="pagination">
+                        <button
+                            type="button"
+                            className="prev-page"
+                            aria-label="Previous page"
+                            onClick={() => changePage(page - 1)}
+                        >
+                            ←
+                        </button>
+
+                        {Array.from(
+                            { length: pagination.totalPages },
+                            (_, index) => index + 1
+                        ).map((pageNumber) => (
+                            <button
+                                type="button"
+                                key={pageNumber}
+                                className={
+                                    pageNumber === pagination.page
+                                        ? "page active-page"
+                                        : "page"
+                                }
+                                onClick={() => changePage(pageNumber)}
+                            >
+                                {pageNumber}
+                            </button>
+                        ))}
+
+                        <button
+                            type="button"
+                            className="next-page"
+                            aria-label="Next page"
+                            onClick={() => changePage(page + 1)}
+                        >
+                            →
+                        </button>
+                    </div>
+                )}
+            </>
+        );
+    }
 
     return (
         <div className="search-page">
@@ -205,22 +306,26 @@ export default function SearchResults() {
 
                 {/* SEARCH */}
 
-                <div className="search-box">
+                <form
+                    className="search-box"
+                    onSubmit={submitSearch}
+                >
 
                     <input
                         type="text"
-                        defaultValue="rtx 4060"
+                        value={input}
+                        onChange={(event) => setInput(event.target.value)}
                         placeholder="Search products..."
                     />
 
                     <button
-                        type="button"
+                        type="submit"
                         aria-label="Search"
                     >
                         <Search size={21} />
                     </button>
 
-                </div>
+                </form>
 
 
                 {/* HEADER ACTIONS */}
@@ -283,11 +388,11 @@ export default function SearchResults() {
                     >
 
                         <div className="user-avatar">
-                            H
+                            {userInitial}
                         </div>
 
                         <span>
-                            Hi, Raghav
+                            Hi, {userName}
                         </span>
 
                         <ChevronDown size={15} />
@@ -318,6 +423,7 @@ export default function SearchResults() {
                     <button
                         type="button"
                         className="back-button"
+                        onClick={() => { window.location.href = "/"; }}
                     >
 
                         <ArrowLeft size={18} />
@@ -341,27 +447,28 @@ export default function SearchResults() {
                         <div className="category-list">
 
                             {categories.map(
-                                (category, index) => {
+                                (categoryItem, index) => {
 
-                                    const Icon =
-                                        category.icon;
+                                    const Icon = categoryItem.icon;
 
                                     return (
 
                                         <button
                                             type="button"
-                                            key={category.name}
+                                            key={categoryItem.name}
                                             className={
-                                                index === 0
+                                                (index === 0 && category === null) ||
+                                                category === categoryItem.name
                                                     ? "category active"
                                                     : "category"
                                             }
+                                            onClick={() => selectCategory(index)}
                                         >
 
                                             <Icon size={18} />
 
                                             <span>
-                                                {category.name}
+                                                {categoryItem.name}
                                             </span>
 
                                         </button>
@@ -425,7 +532,7 @@ export default function SearchResults() {
 
                         <div className="brand-list">
 
-                            {brands.map(
+                            {brandList.map(
                                 ([brand, count]) => (
 
                                     <label
@@ -436,6 +543,8 @@ export default function SearchResults() {
                                         <input
                                             type="checkbox"
                                             value={brand}
+                                            checked={selectedBrands.includes(brand)}
+                                            onChange={() => toggleBrand(brand)}
                                         />
 
                                         <span className="custom-checkbox"></span>
@@ -463,6 +572,7 @@ export default function SearchResults() {
                     <button
                         type="button"
                         className="clear-button"
+                        onClick={clearFilters}
                     >
 
                         <X size={16} />
@@ -514,31 +624,53 @@ export default function SearchResults() {
                             </h2>
 
                             <p>
-                                Showing 8 results for{" "}
+                                Showing{" "}
+                                {loading ? "…" : pagination.total}{" "}
+                                {pagination.total === 1 ? "result" : "results"} for{" "}
                                 <strong>
-                                    "rtx 4060"
+                                    "{searchTerm}"
                                 </strong>
                             </p>
 
                         </div>
 
 
-                        <button
-                            type="button"
-                            className="sort-button"
-                        >
+                        <div className="sort-button sort-wrap">
 
                             <span>
                                 Sort by:
                             </span>
 
-                            <strong>
-                                Relevance
-                            </strong>
+                            <select
+                                value={sort}
+                                onChange={(event) => {
+                                    setError(null);
+                                    setSort(event.target.value);
+                                    setPage(1);
+                                }}
+                                aria-label="Sort results"
+                            >
+                                <option value="relevance">
+                                    Relevance
+                                </option>
 
-                            <ChevronDown size={17} />
+                                <option value="price_asc">
+                                    Price: Low to High
+                                </option>
 
-                        </button>
+                                <option value="price_desc">
+                                    Price: High to Low
+                                </option>
+
+                                <option value="name_asc">
+                                    Name: A to Z
+                                </option>
+
+                            </select>
+
+                            <ChevronDown size={17} className="chevron" />
+
+                        </div>
 
                     </div>
 
@@ -547,51 +679,7 @@ export default function SearchResults() {
                         PRODUCTS
                     ================================================== */}
 
-                    <div className="product-grid">
-
-                        {products.map(
-                            (product) => (
-
-                                <ProductCard
-                                    key={product.id}
-                                    product={product}
-                                />
-
-                            )
-                        )}
-
-                    </div>
-
-
-                    {/* ==================================================
-                        PAGINATION
-                    ================================================== */}
-
-                    <div className="pagination">
-
-                        <button
-                            type="button"
-                            className="page active-page"
-                        >
-                            1
-                        </button>
-
-                        <button
-                            type="button"
-                            className="page"
-                        >
-                            2
-                        </button>
-
-                        <button
-                            type="button"
-                            className="next-page"
-                            aria-label="Next page"
-                        >
-                            →
-                        </button>
-
-                    </div>
+                    {productArea}
 
                 </main>
 
@@ -607,6 +695,10 @@ export default function SearchResults() {
 // ======================================================
 
 function ProductCard({ product }) {
+
+    const specifications = Array.isArray(product.specifications)
+        ? product.specifications
+        : ["8GB GDDR6", "128-bit", "DLSS 3"];
 
     return (
 
@@ -650,25 +742,12 @@ function ProductCard({ product }) {
 
             <div className="specifications">
 
-                <span>
-                    8GB GDDR6
-                </span>
-
-                <i>
-                    |
-                </i>
-
-                <span>
-                    128-bit
-                </span>
-
-                <i>
-                    |
-                </i>
-
-                <span>
-                    DLSS 3
-                </span>
+                {specifications.map((spec, index) => (
+                    <Fragment key={index}>
+                        {index > 0 && <i>|</i>}
+                        <span>{spec}</span>
+                    </Fragment>
+                ))}
 
             </div>
 

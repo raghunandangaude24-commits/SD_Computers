@@ -1,15 +1,78 @@
+import { useRef, useState } from "react";
 import {
   User,
   Mail,
   Phone,
   Lock,
   EyeOff,
+  Eye,
   ArrowRight,
 } from "lucide-react";
 
 import "../styles/auth.css";
+import { authService } from "../services/authService.js";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Register() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneCode, setPhoneCode] = useState("+91");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const redirectTimer = useRef(null);
+
+  const validate = () => {
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+
+    if (cleanName.length < 2) return "Please enter your full name.";
+    if (!EMAIL_RE.test(cleanEmail)) return "Please enter a valid email address.";
+    if (!/^\d{10}$/.test(phone.replace(/\D/g, ""))) {
+      return "Please enter a valid 10 digit mobile number.";
+    }
+    if (password.length < 8) return "Password must be at least 8 characters.";
+    if (password !== confirmPassword) return "Passwords do not match.";
+    return null;
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (loading) return;
+
+    setError(null);
+
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await authService.register({
+        name: name.trim(),
+        email: email.trim(),
+        phone: `${phoneCode}${phone.replace(/\D/g, "")}`,
+        password,
+      });
+
+      setSuccess("Account created successfully!");
+      redirectTimer.current = setTimeout(() => {
+        window.location.href = "/login?registered=1";
+      }, 1200);
+    } catch (err) {
+      setError(err.message || "Registration failed. Please try again.");
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="auth-page">
 
@@ -27,13 +90,28 @@ export default function Register() {
       {/* REGISTER CARD */}
       <form
         className="auth-card register-card"
-        onSubmit={(event) => event.preventDefault()}
+        onSubmit={handleSubmit}
+        noValidate
       >
         <h1>Create Account</h1>
 
         <p>
           Fill in your details to get started
         </p>
+
+        {/* ERROR */}
+        {error && (
+          <div className="auth-message error">
+            {error}
+          </div>
+        )}
+
+        {/* SUCCESS */}
+        {success && (
+          <div className="auth-message success">
+            {success} Redirecting to login...
+          </div>
+        )}
 
 
         {/* FULL NAME */}
@@ -44,6 +122,8 @@ export default function Register() {
             type="text"
             placeholder="Full Name"
             required
+            value={name}
+            onChange={(event) => setName(event.target.value)}
           />
         </div>
 
@@ -56,6 +136,8 @@ export default function Register() {
             type="email"
             placeholder="Email address"
             required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
           />
         </div>
 
@@ -64,8 +146,9 @@ export default function Register() {
         <div className="phone-row">
 
           <select
-            defaultValue="+91"
             aria-label="Country code"
+            value={phoneCode}
+            onChange={(event) => setPhoneCode(event.target.value)}
           >
             <option value="+91">+91</option>
             <option value="+1">+1</option>
@@ -81,6 +164,8 @@ export default function Register() {
               type="tel"
               placeholder="10 digit mobile number"
               required
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
             />
 
           </div>
@@ -93,17 +178,20 @@ export default function Register() {
           <Lock />
 
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Password"
             required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
           />
 
           <button
             type="button"
             className="password-toggle"
-            aria-label="Show password"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            onClick={() => setShowPassword((visible) => !visible)}
           >
-            <EyeOff />
+            {showPassword ? <Eye /> : <EyeOff />}
           </button>
         </div>
 
@@ -113,17 +201,20 @@ export default function Register() {
           <Lock />
 
           <input
-            type="password"
+            type={showConfirm ? "text" : "password"}
             placeholder="Confirm password"
             required
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
           />
 
           <button
             type="button"
             className="password-toggle"
-            aria-label="Show password"
+            aria-label={showConfirm ? "Hide password" : "Show password"}
+            onClick={() => setShowConfirm((visible) => !visible)}
           >
-            <EyeOff />
+            {showConfirm ? <Eye /> : <EyeOff />}
           </button>
         </div>
 
@@ -154,9 +245,10 @@ export default function Register() {
         <button
           className="primary-button"
           type="submit"
+          disabled={loading}
         >
-          Create Account
-          <ArrowRight />
+          {loading ? "Creating Account..." : "Create Account"}
+          {!loading && <ArrowRight />}
         </button>
 
 

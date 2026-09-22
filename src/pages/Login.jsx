@@ -1,13 +1,46 @@
+import { useState } from "react";
 import {
   Mail,
   Lock,
   EyeOff,
+  Eye,
   ArrowRight,
 } from "lucide-react";
 
 import "../styles/auth.css";
+import { authService } from "../services/authService.js";
 
 export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // "?registered=1" is set by the Register page after a successful signup.
+  const registered = new URLSearchParams(window.location.search).get("registered") === "1";
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    setError(null);
+
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !password) {
+      setError("Please enter your email and password.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await authService.login(cleanEmail, password);
+      window.location.href = "/search";
+    } catch (err) {
+      setError(err.message || "Login failed. Please try again.");
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="auth-page">
 
@@ -25,13 +58,28 @@ export default function Login() {
       {/* LOGIN CARD */}
       <form
         className="auth-card"
-        onSubmit={(event) => event.preventDefault()}
+        onSubmit={handleSubmit}
+        noValidate
       >
         <h1>Welcome Back</h1>
 
         <p>
           Login to your account to continue
         </p>
+
+        {/* SUCCESS (after registration) */}
+        {registered && (
+          <div className="auth-message success">
+            Account created successfully. Please login to continue.
+          </div>
+        )}
+
+        {/* ERROR */}
+        {error && (
+          <div className="auth-message error">
+            {error}
+          </div>
+        )}
 
 
         {/* EMAIL */}
@@ -42,6 +90,8 @@ export default function Login() {
             type="email"
             placeholder="Email address"
             required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
           />
         </div>
 
@@ -51,17 +101,20 @@ export default function Login() {
           <Lock />
 
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Password"
             required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
           />
 
           <button
             type="button"
             className="password-toggle"
-            aria-label="Show password"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            onClick={() => setShowPassword((visible) => !visible)}
           >
-            <EyeOff />
+            {showPassword ? <Eye /> : <EyeOff />}
           </button>
         </div>
 
@@ -85,9 +138,10 @@ export default function Login() {
         <button
           className="primary-button"
           type="submit"
+          disabled={loading}
         >
-          Login
-          <ArrowRight />
+          {loading ? "Logging in..." : "Login"}
+          {!loading && <ArrowRight />}
         </button>
 
 
