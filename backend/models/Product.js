@@ -4,8 +4,13 @@ import sequelize from "../config/database.js";
 
 /**
  * A product sold on the store.
- * Belongs to one Category and one Brand (see models/index.js).
- * createdAt / updatedAt are managed automatically by Sequelize timestamps.
+ *
+ * IMPORTANT: this model must mirror the `products` table in
+ * backend/sql/schema.sql (brand / category are plain string columns,
+ * and prices are stored as old_price). The API controllers and the
+ * frontend consume exactly those columns, and `sequelize.sync()`
+ * recreates this table on a fresh database — so if this model drifts
+ * from schema.sql, the API breaks with unknown-column errors.
  */
 const Product = sequelize.define(
   "Product",
@@ -19,15 +24,19 @@ const Product = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true,
+    brand: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    },
+    category: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
     },
     price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
-    originalPrice: {
+    old_price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
     },
@@ -42,24 +51,10 @@ const Product = sequelize.define(
       allowNull: false,
       defaultValue: "",
     },
-    stock: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
-      defaultValue: 0,
-    },
-    categoryId: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
-      references: { model: "categories", key: "id" },
-      onUpdate: "CASCADE",
-      onDelete: "RESTRICT",
-    },
-    brandId: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
-      references: { model: "brands", key: "id" },
-      onUpdate: "CASCADE",
-      onDelete: "RESTRICT",
+    // JSON array string (e.g. '["8GB GDDR6","128-bit","DLSS 3"]').
+    specifications: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
   },
   {

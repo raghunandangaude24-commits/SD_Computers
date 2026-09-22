@@ -1,6 +1,99 @@
+/* ============================================================
+   SD COMPUTERS — GLOBAL DESIGN TOKENS + BASE STYLES
+   One set of colors / type / spacing for the whole application.
+   ============================================================ */
+
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
-:root { font-family: 'Inter', sans-serif; color: #f5f5fa; background: #050608; font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
-* { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; background: #050608; }
-button, input { font: inherit; }
-button { cursor: pointer; }
+
+:root {
+  /* Surfaces */
+  --bg: #050608;
+  --bg-glow: radial-gradient(circle at 72% 10%, #171025 0, transparent 30%);
+  --panel: #101216;
+  --panel-2: #13161a;
+  --panel-3: #111318;
+
+  /* Lines / borders */
+  --line: #22242a;
+  --line-soft: #1b1e24;
+  --line-strong: #2a2d35;
+
+  /* Text */
+  --text: #f5f5fa;
+  --text-dim: #d6d6dc;
+  --muted: #92949d;
+  --muted-2: #a7a7ad;
+
+  /* Brand accents */
+  --purple: #7c29dd;
+  --purple-deep: #6b1ad0;
+  --purple-bright: #a84dff;
+  --purple-soft: #be73ff;
+  --purple-wash: rgba(124, 41, 221, 0.16);
+
+  /* Feedback */
+  --success: #74dd38;
+  --danger: #ffb3bc;
+  --danger-border: rgba(255, 86, 104, 0.35);
+  --star: #ffbf00;
+
+  /* Shape + elevation */
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.25);
+  --shadow-glow: 0 8px 24px rgba(124, 41, 221, 0.28);
+  --grad-primary: linear-gradient(100deg, #7c29dd, #a84dff);
+
+  /* Layout */
+  --content-max: 1500px;
+  --page-gutter: 20px;
+
+  /* Type */
+  --font-body: 'Inter', sans-serif;
+  --font-display: 'Barlow Condensed', sans-serif;
+
+  color: var(--text);
+  background: var(--bg);
+  font-family: var(--font-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  width: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+}

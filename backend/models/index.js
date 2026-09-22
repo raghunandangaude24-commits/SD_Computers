@@ -6,15 +6,10 @@ import Product from "./Product.js";
 import User from "./User.js";
 
 // --- Relationships ------------------------------------------------------
-// Only the requested relationships are defined here.
-
-// Category 1—N Products
-Category.hasMany(Product, { foreignKey: "categoryId" });
-Product.belongsTo(Category, { foreignKey: "categoryId" });
-
-// Brand 1—N Products
-Brand.hasMany(Product, { foreignKey: "brandId" });
-Product.belongsTo(Brand, { foreignKey: "brandId" });
+// The schema (backend/sql/schema.sql) stores brand and category as plain
+// string columns on products — there are no categories/brands join tables
+// wired to products, so no associations are defined here. The Category and
+// Brand models are kept for compatibility but are not referenced by the API.
 
 // --- Exports -------------------------------------------------------------
 export { sequelize, User, Product, Category, Brand };

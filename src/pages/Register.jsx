@@ -11,6 +11,7 @@ import {
 
 import "../styles/auth.css";
 import { authService } from "../services/authService.js";
+import logo from "../assets/sd-computers-logo.svg";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -78,7 +79,7 @@ export default function Register() {
 
       {/* LOGO */}
       <div className="auth-logo">
-        <div className="logo-mark">◈</div>
+        <img className="auth-logo-img" src={logo} alt="SD Computers logo" />
 
         <div className="logo-text">
           <strong>SD COMPUTERS</strong>

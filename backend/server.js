@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { sequelize } from "./models/index.js";
 import authRoutes from "./routes/authRoutes.js";
 import searchRoutes from "./routes/searchRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
 import {
   notFoundHandler,
   errorHandler,
@@ -38,6 +39,7 @@ app.get("/api/health", (req, res) => {
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/products", productRoutes);
 
 // --- 404 + centralized error handling ---
 app.use(notFoundHandler);

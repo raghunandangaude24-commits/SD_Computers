@@ -9,6 +9,7 @@ import {
 
 import "../styles/auth.css";
 import { authService } from "../services/authService.js";
+import logo from "../assets/sd-computers-logo.svg";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -46,7 +47,7 @@ export default function Login() {
 
       {/* LOGO */}
       <div className="auth-logo">
-        <div className="logo-mark">◈</div>
+        <img className="auth-logo-img" src={logo} alt="SD Computers logo" />
 
         <div className="logo-text">
           <strong>SD COMPUTERS</strong>

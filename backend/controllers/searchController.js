@@ -1,6 +1,6 @@
 import pool from "../config/db.js";
 import { validateSearchParams } from "../utils/validation.js";
-import { formatINR } from "../utils/format.js";
+import { toProductJson } from "../utils/productMapper.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 /**
@@ -9,6 +9,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
  */
 const SORT_MAP = {
   relevance: "p.id ASC",
+  newest: "p.id DESC",
   price_asc: "p.price ASC",
   price_desc: "p.price DESC",
   name_asc: "p.name ASC",
@@ -21,34 +22,6 @@ function parseBrands(query) {
   if (!raw) return [];
   const list = Array.isArray(raw) ? raw : String(raw).split(",");
   return [...new Set(list.map((b) => String(b).trim()).filter(Boolean))];
-}
-
-/** Convert a DB row into the exact shape the existing UI consumes. */
-function toProductJson(row) {
-  let specifications = [];
-  if (row.specifications) {
-    try {
-      const parsed = JSON.parse(row.specifications);
-      specifications = Array.isArray(parsed) ? parsed : [String(parsed).trim()];
-    } catch {
-      specifications = String(row.specifications)
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
-    }
-  }
-
-  return {
-    id: row.id,
-    name: row.name,
-    brand: row.brand,
-    category: row.category,
-    image: row.image,
-    price: formatINR(row.price),
-    oldPrice: row.old_price == null ? null : formatINR(row.old_price),
-    discount: row.discount || null,
-    specifications,
-  };
 }
 
 /**
@@ -145,6 +118,28 @@ export const search = asyncHandler(async (req, res) => {
       totalPages,
     },
     brands: brandRows.map((row) => ({
+      name: row.name,
+      count: Number(row.count),
+    })),
+  });
+});
+
+/**
+ * GET /api/search/categories
+ * Returns the distinct product categories currently in the catalog,
+ * so the Home page and category navigation never hardcode category names.
+ */
+export const listCategories = asyncHandler(async (req, res) => {
+  const [rows] = await pool.query(
+    `SELECT category AS name, COUNT(*) AS count
+     FROM products
+     GROUP BY category
+     ORDER BY name ASC`
+  );
+
+  return res.json({
+    success: true,
+    categories: rows.map((row) => ({
       name: row.name,
       count: Number(row.count),
     })),
