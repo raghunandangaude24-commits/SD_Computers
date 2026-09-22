@@ -4,7 +4,7 @@ import cors from "cors";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { testConnection } from "./config/db.js";
+import { sequelize } from "./models/index.js";
 import authRoutes from "./routes/authRoutes.js";
 import searchRoutes from "./routes/searchRoutes.js";
 import {
@@ -52,11 +52,16 @@ async function start() {
   }
 
   try {
-    const result = await testConnection();
-    console.log("[db] MySQL connection OK", result);
+    await sequelize.authenticate();
+    console.log("[db] MySQL connection OK");
+
+    // Non-destructive: creates missing tables only, never forces or alters.
+    await sequelize.sync();
+    console.log("[db] Sequelize models synchronized");
   } catch (err) {
     console.error("[db] Could not connect to MySQL:", err.message);
-    console.error("[db] Check DB_HOST / DB_USER / DB_PASSWORD / DB_NAME in backend/.env");
+    console.error("[db] Check DB_HOST / DB_PORT / DB_USER / DB_PASSWORD / DB_NAME in backend/.env");
+    process.exit(1);
   }
 
   app.listen(PORT, () => {
