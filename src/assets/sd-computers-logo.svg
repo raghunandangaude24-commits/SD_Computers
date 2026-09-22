@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">SD Computers logo</title>
+  <desc id="desc">Purple geometric computer cube logo</desc>
+  <defs>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b96cff"/>
+      <stop offset="1" stop-color="#6f20d4"/>
+    </linearGradient>
+    <linearGradient id="left" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9d4df4"/>
+      <stop offset="1" stop-color="#5520aa"/>
+    </linearGradient>
+    <linearGradient id="right" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8f39e7"/>
+      <stop offset="1" stop-color="#bd67ff"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#top)" d="M11 24 48 6l37 18-37 19z"/>
+  <path fill="url(#left)" d="M11 24v45l37 21V45z"/>
+  <path fill="url(#right)" d="M48 45v45l37-21V24z"/>
+  <path fill="#0b0b11" d="m48 22 20 10v24L48 67 28 56V32z"/>
+  <path fill="#7e31df" d="m48 28 13 7v14l-13 7-13-7V35z"/>
+  <path fill="#17121f" d="m48 33 8 4v9l-8 4-8-4v-9z"/>
+  <path fill="none" stroke="#c17aff" stroke-linecap="round" stroke-width="2" d="M18 29v31M78 31v28M51 77l25-14" opacity=".7"/>
+</svg>
