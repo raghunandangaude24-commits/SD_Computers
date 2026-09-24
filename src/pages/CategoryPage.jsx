@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { categoryService } from "../services/categoryService.js";
 import { listProducts } from "../services/productService.js";
@@ -19,11 +19,15 @@ const RESULTS_PER_PAGE = 24;
  */
 export default function CategoryPage() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const nameParam = searchParams.get("name") || null;
 
   const [category, setCategory] = useState(null);
   const [categoryError, setCategoryError] = useState(false);
+  // Full category list for the sidebar, so "All Categories" and every
+  // other category are clickable on this page too (not just on Home).
+  const [allCategories, setAllCategories] = useState([]);
 
   const [products, setProducts] = useState([]);
   const [brandFacets, setBrandFacets] = useState([]);
@@ -70,6 +74,23 @@ export default function CategoryPage() {
       cancelled = true;
     };
   }, [categoryKey]);
+
+  // Load the full category list once so the sidebar can offer every
+  // category (matching the Home and Search pages).
+  useEffect(() => {
+    let cancelled = false;
+    categoryService
+      .list()
+      .then((data) => {
+        if (!cancelled) setAllCategories(data);
+      })
+      .catch(() => {
+        /* sidebar falls back to showing just the current category */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Fetch products once the category name is known.
   useEffect(() => {
@@ -135,6 +156,17 @@ export default function CategoryPage() {
     setPriceMin("");
     setPriceMax("");
     setPage(1);
+  };
+
+  /** Sidebar category click: null → all categories (/search), otherwise
+   *  navigate to the clicked category's clean slug URL. */
+  const selectCategory = (name) => {
+    if (!name) {
+      navigate("/search");
+      return;
+    }
+    const match = allCategories.find((item) => item.name === name);
+    navigate(match ? `/category/${match.slug}` : `/category/${encodeURIComponent(name)}`);
   };
 
   const changePage = (nextPage) => {
@@ -218,8 +250,9 @@ export default function CategoryPage() {
 
   const sidebar = (
     <FilterSidebar
-      categories={category ? [category] : []}
+      categories={allCategories.length > 0 ? allCategories : category ? [category] : []}
       activeCategory={category ? category.name : null}
+      onSelectCategory={selectCategory}
       brands={brandFacets}
       selectedBrands={selectedBrands}
       onToggleBrand={toggleBrand}

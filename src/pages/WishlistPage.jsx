@@ -1,6 +1,7 @@
 import { Heart } from "lucide-react";
 import ProductGrid from "../components/ProductGrid.jsx";
 import PageState from "../components/PageState.jsx";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
 import { useStore } from "../store/StoreContext.jsx";
 
 /**
@@ -13,6 +14,9 @@ export default function WishlistPage() {
 
   return (
     <div className="listing-page">
+      <Breadcrumbs
+        items={[{ label: "Home", to: "/" }, { label: "Wishlist" }]}
+      />
       <div className="title-row">
         <div className="title-content">
           <h2>

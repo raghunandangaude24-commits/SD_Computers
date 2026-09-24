@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Trash2, ArrowRight } from "lucide-react";
 import { useStore } from "../store/StoreContext.jsx";
 import PageState from "../components/PageState.jsx";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
 
 /**
  * Cart page. Items come from the store (server cart for signed-in users,
@@ -40,6 +41,9 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="listing-page">
+        <Breadcrumbs
+          items={[{ label: "Home", to: "/" }, { label: "Cart" }]}
+        />
         <PageState
           variant="empty"
           title="Your cart is empty."
@@ -84,6 +88,9 @@ export default function CartPage() {
 
   return (
     <div className="cart-page-wrap">
+      <Breadcrumbs
+        items={[{ label: "Home", to: "/" }, { label: "Cart" }]}
+      />
       <div className="page-header">
         <div className="cart-icon">
           <ShoppingCart size={22} />

@@ -10,11 +10,23 @@
     background: radial-gradient(circle at 72% 10%, #171025 0, transparent 30%), #050608;
 }
 
-.home-layout {
+/* The shared storefront spine: category rail + page content + widget
+   rail — the three-column shell the Home page was built on. Every
+   storefront route renders inside it; Search/Category use `.no-left`
+   because their filter sidebar stands in for the left rail. */
+.store-layout {
     display: grid;
     grid-template-columns: 170px minmax(0, 1fr) 138px;
     gap: 16px;
     margin-top: 18px;
+}
+
+.store-layout>* {
+    min-width: 0;
+}
+
+.store-layout.no-left {
+    grid-template-columns: minmax(0, 1fr) 138px;
 }
 
 .sidebar {
@@ -95,14 +107,19 @@
 .hero-banner button,
 .newsletter button,
 .rail-builder button {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: auto;
     margin-top: 14px;
-    padding: 9px 12px;
-    background: #7626d6;
-    border-radius: 4px;
+    padding: 9px 14px;
+    background: var(--grad-primary);
+    border: 0;
+    border-radius: var(--radius-sm);
     color: white;
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    transition: filter 0.2s ease;
 }
 
 .mini-case,
@@ -237,8 +254,10 @@
 }
 
 .section-head h2 {
-    font-size: 12px;
+    font: 600 15px var(--font-display);
+    letter-spacing: .6px;
     margin: 0;
+    color: var(--text);
 }
 
 .section-head span,
@@ -550,10 +569,49 @@
     font-size: 11px;
 }
 
+/* Out-of-stock state — the danger pink used by the "Out of stock" card
+   label, so a sold-out product never shows the in-stock green. */
+.stock strong.out {
+    color: var(--danger);
+}
+
 .stock span {
     font-size: 10px;
     color: #babac0;
     margin-left: 20px;
+}
+
+.product-description {
+    margin: 8px 0 0;
+    color: #bdbec5;
+    font-size: 11px;
+    line-height: 1.7;
+    border-bottom: 1px solid #22242b;
+    padding-bottom: 13px;
+}
+
+.spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 11px;
+}
+
+.spec-table th,
+.spec-table td {
+    text-align: left;
+    padding: 8px 10px;
+    border: 1px solid #22242b;
+    color: #bdbec5;
+    background: transparent;
+}
+
+.spec-table th {
+    width: 40%;
+    white-space: nowrap;
+    color: #8f939e;
+    background: #0e1014;
+    font-weight: 600;
 }
 
 .product-info h3 {
@@ -622,12 +680,12 @@
     width: 100%;
     height: 42px;
     margin-top: 13px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     font-size: 12px;
 }
 
 .add {
-    background: #6c21dc;
+    background: var(--grad-primary);
     color: white;
     border: 0;
 }
@@ -764,8 +822,12 @@
 }
 
 @media (max-width: 1050px) {
-    .home-layout {
+    .store-layout {
         grid-template-columns: 150px minmax(0, 1fr);
+    }
+
+    .store-layout.no-left {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .right-rail {
@@ -790,7 +852,7 @@
         padding: 0 10px 25px;
     }
 
-    .home-layout {
+    .store-layout {
         display: block;
     }
 
@@ -860,14 +922,14 @@
 
 /* Cart layout */
 .cart-page-wrap {
-    padding: 24px 8px 10px;
+    padding: 0 0 10px;
 }
 
 .page-header {
     display: flex;
     align-items: center;
     gap: 14px;
-    margin: 0 0 24px;
+    margin: 8px 0 22px;
 }
 
 .cart-icon {
@@ -875,22 +937,16 @@
     place-items: center;
     width: 44px;
     height: 44px;
-    border-radius: 12px;
-    background: rgba(124, 41, 221, .16);
-    color: #c98aff;
+    border-radius: var(--radius);
+    background: var(--purple-wash);
+    color: var(--purple-soft);
     font-size: 22px;
 }
 
-.page-header h1 {
-    margin: 0;
-    font-size: 32px;
-    line-height: 1.1;
-}
-
 .page-header p {
-    margin: 6px 0 0;
+    margin: 7px 0 0;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .cart-layout {
@@ -1189,8 +1245,8 @@
     margin-top: 10px;
     padding: 13px;
     border: 0;
-    border-radius: 6px;
-    background: linear-gradient(100deg, #873ce4, #6721c8);
+    border-radius: var(--radius-sm);
+    background: var(--grad-primary);
     color: #fff;
     font-size: 12px;
     font-weight: 700;

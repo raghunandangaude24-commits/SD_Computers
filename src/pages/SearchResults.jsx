@@ -12,14 +12,14 @@ import FilterSidebar, { MobileFilters } from "../components/FilterSidebar.jsx";
 const RESULTS_PER_PAGE = 12;
 
 export default function SearchResults() {
-  // Initialize from the URL (?q=..., ?category=...) so searches and
-  // category links from the Home page open the matching results.
+  // The URL is the single source of truth for the search term + category.
+  // Deriving them (instead of copying into state) means a new header
+  // search, a category link, or browser back/forward while already on
+  // /search re-runs the query automatically.
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialQuery = searchParams.get("q") ?? "";
-  const initialCategory = searchParams.get("category") || null;
+  const searchTerm = searchParams.get("q") ?? "";
+  const category = searchParams.get("category") || null;
 
-  const [searchTerm] = useState(initialQuery);
-  const [category, setCategory] = useState(initialCategory);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
@@ -88,8 +88,19 @@ export default function SearchResults() {
 
   const selectCategory = (name) => {
     setError(null);
-    setCategory(name);
     setPage(1);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (name) {
+          next.set("category", name);
+        } else {
+          next.delete("category");
+        }
+        return next;
+      },
+      { replace: true }
+    );
   };
 
   const toggleBrand = (brand) => {
@@ -111,11 +122,18 @@ export default function SearchResults() {
 
   const clearFilters = () => {
     setError(null);
-    setCategory(null);
     setSelectedBrands([]);
     setPriceMin("");
     setPriceMax("");
     setPage(1);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("category");
+        return next;
+      },
+      { replace: true }
+    );
   };
 
   const changePage = (nextPage) => {

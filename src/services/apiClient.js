@@ -13,26 +13,45 @@ export const API_BASE_URL =
 const TOKEN_KEY = "sd_token";
 const USER_KEY = "sd_user";
 
+// "Remember me" unchecked sessions live in sessionStorage instead, so
+// they survive reloads but end when the tab/browser is closed.
+const SESSION_TOKEN_KEY = "sd_session_token";
+const SESSION_USER_KEY = "sd_session_user";
+
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  return (
+    localStorage.getItem(TOKEN_KEY) ||
+    sessionStorage.getItem(SESSION_TOKEN_KEY) ||
+    null
+  );
 }
 
 export function getUser() {
+  const raw =
+    localStorage.getItem(USER_KEY) || sessionStorage.getItem(SESSION_USER_KEY);
   try {
-    return JSON.parse(localStorage.getItem(USER_KEY)) || null;
+    return JSON.parse(raw) || null;
   } catch {
     return null;
   }
 }
 
-export function setSession(token, user) {
-  localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+export function setSession(token, user, { persistent = true } = {}) {
+  clearSession();
+  if (persistent) {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  } else {
+    sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+    sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+  }
 }
 
 export function clearSession() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  sessionStorage.removeItem(SESSION_TOKEN_KEY);
+  sessionStorage.removeItem(SESSION_USER_KEY);
 }
 
 async function request(path, { method = "GET", body, auth = true } = {}) {

@@ -150,8 +150,8 @@ export function StoreProvider({ children }) {
   }, []);
 
   /** POST /api/auth/login + merge guest cart/wishlist into the account. */
-  const login = useCallback(async (email, password) => {
-    const data = await authService.login(email, password);
+  const login = useCallback(async (email, password, remember = true) => {
+    const data = await authService.login(email, password, remember);
 
     const guestCart = readGuest(GUEST_CART_KEY);
     if (guestCart.length > 0) {

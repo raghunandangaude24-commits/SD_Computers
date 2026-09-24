@@ -118,6 +118,13 @@ export default function CheckoutPage() {
   if (checkoutItems.length === 0) {
     return (
       <div className="listing-page">
+        <Breadcrumbs
+          items={[
+            { label: "Home", to: "/" },
+            { label: "Cart", to: "/cart" },
+            { label: "Checkout" },
+          ]}
+        />
         <PageState
           variant="empty"
           title="Nothing to check out."

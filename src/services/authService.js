@@ -8,10 +8,12 @@ import {
 } from "./apiClient.js";
 
 export const authService = {
-  /** POST /api/auth/login — stores the JWT + user on success. */
-  async login(email, password) {
+  /** POST /api/auth/login — stores the JWT + user on success.
+   *  `remember` controls persistence: true → localStorage (survives
+   *  browser restart), false → sessionStorage (ends with the tab). */
+  async login(email, password, remember = true) {
     const data = await apiPost("/auth/login", { email, password });
-    setSession(data.token, data.user);
+    setSession(data.token, data.user, { persistent: remember });
     return data;
   },
 

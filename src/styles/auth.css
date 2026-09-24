@@ -299,6 +299,16 @@
   color: var(--purple-bright);
 }
 
+/* Password recovery is not wired up yet — show it as an inert hint
+   instead of a dead #anchor link. */
+.auth-options .forgot-hint {
+  color: var(--muted-2);
+
+  font-weight: 500;
+
+  cursor: default;
+}
+
 /* =========================================
    PRIMARY BUTTON
    SAME FOR LOGIN + REGISTER

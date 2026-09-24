@@ -17,9 +17,23 @@
 .filters-sidebar {
   width: 278px;
   flex-shrink: 0;
-  padding: 24px 15px;
-  border-right: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, var(--panel-3), #07080b);
+  height: max-content;
+  padding: 0 0 18px;
+  border-radius: 6px;
+  overflow: hidden;
+  /* Same surface as the Home page's left rail so every page reads as
+     the same column. */
+  background: var(--panel);
+}
+
+/* Inside the mobile drawer the panel look would double up. */
+.filter-drawer .filters-sidebar {
+  width: 100%;
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
 }
 
 .back-button {
@@ -27,7 +41,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 22px;
+  padding: 14px 22px;
   border: none;
   background: transparent;
   color: var(--text-dim);
@@ -40,7 +54,23 @@
 }
 
 .sidebar-section {
-  margin-top: 28px;
+  margin-top: 14px;
+}
+
+/* First section sits flush against the top of the panel (mirrors the
+   Home sidebar's "All Categories" title bar). */
+.sidebar-section:first-child {
+  margin-top: 0;
+}
+
+/* Gradient section header — the Home page's category-title bar. */
+.filters-sidebar .sidebar-section h3 {
+  margin: 0;
+  padding: 13px 15px;
+  background: linear-gradient(100deg, var(--purple-deep), #5520a7);
+  color: var(--text);
+  font-size: 11px;
+  letter-spacing: 0.3px;
 }
 
 .filters-sidebar h3,
@@ -60,19 +90,20 @@
 }
 
 .category {
-  height: 41px;
+  min-height: 40px;
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 0 13px;
+  gap: 11px;
+  padding: 10px 15px;
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
   background: transparent;
   color: var(--text-dim);
-  font-size: 14px;
+  font-size: 11px;
   cursor: pointer;
   text-align: left;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
 .category svg {
@@ -82,11 +113,11 @@
 .category .cat-count {
   margin-left: auto;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .category:hover {
-  background: var(--purple-wash);
+  color: var(--purple-soft);
 }
 
 .category.active {
@@ -109,6 +140,7 @@
 
 .filter-section h3 {
   margin-left: 21px;
+  font-size: 12px;
 }
 
 /* PRICE SLIDER */
@@ -323,8 +355,6 @@
 
   .filters-sidebar {
     width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--line-soft);
   }
 
   .category-list {

@@ -21,6 +21,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -47,7 +48,7 @@ export default function Login() {
 
     setLoading(true);
     try {
-      await login(cleanEmail, password);
+      await login(cleanEmail, password, remember);
       navigate(from, { replace: true });
     } catch (err) {
       setError(err.message || "Login failed. Please try again.");
@@ -137,13 +138,17 @@ export default function Login() {
         <div className="auth-options">
 
           <label className="remember">
-            <input type="checkbox" readOnly />
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(event) => setRemember(event.target.checked)}
+            />
             <span>Remember me</span>
           </label>
 
-          <a href="#forgot">
+          <span className="forgot-hint" title="Password recovery is not available yet">
             Forgot password?
-          </a>
+          </span>
 
         </div>
 

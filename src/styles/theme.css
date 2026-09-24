@@ -179,7 +179,10 @@
   margin: 0 auto;
   padding: 34px var(--page-gutter) 26px;
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  /* Brand + Shop + Account + Help + Payments — five children, so five
+     explicit tracks (the old 2fr 1fr 1fr pushed Help/Payments onto an
+     implicit, misaligned second row). */
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap: 34px;
 }
 
@@ -280,9 +283,9 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 11px 20px;
+  padding: 9px 15px;
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
@@ -643,7 +646,7 @@
 }
 
 .listing-page {
-  padding: 26px 0 10px;
+  padding: 0 0 10px;
 }
 
 .title-row {
@@ -651,21 +654,27 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 18px;
-  margin: 18px 0 24px;
+  margin: 8px 0 22px;
 }
 
-.title-content h2 {
+/* ONE page-title style across every route: listing pages, content
+   pages (.page-heading), cart (.page-header) and wishlist all render
+   the same compact display heading + muted subtitle. */
+.title-content h2,
+.page-heading h1,
+.page-header h1 {
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 0;
-  font-size: 30px;
-  line-height: 1.1;
-  letter-spacing: -0.4px;
+  font: 600 26px/1.1 var(--font-display);
+  letter-spacing: 0.5px;
 }
 
-.title-content p {
-  margin: 8px 0 0;
+.title-content p,
+.page-heading p,
+.page-header p {
+  margin: 7px 0 0;
   color: var(--muted);
   font-size: 13px;
 }
@@ -796,6 +805,19 @@
 /* ------------------------------------------------------------
    RESPONSIVE (shared components)
 ------------------------------------------------------------ */
+
+/* Tablet: five columns get cramped — switch the footer to two
+   columns with the brand block spanning the full width. */
+@media (max-width: 1100px) {
+  .footer-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 26px 24px;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+}
 
 @media (max-width: 1050px) {
   .site-header {

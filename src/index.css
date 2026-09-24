@@ -6,12 +6,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Surfaces */
+  /* Surfaces — aligned to the Home page palette (sidebar/rail #111318,
+     benefit strip #101216, cart/card deep #0e1117) so every page shares
+     the exact same surface language. */
   --bg: #050608;
   --bg-glow: radial-gradient(circle at 72% 10%, #171025 0, transparent 30%);
-  --panel: #101216;
-  --panel-2: #13161a;
-  --panel-3: #111318;
+  --panel: #111318;
+  --panel-2: #101216;
+  --panel-3: #0e1117;
 
   /* Lines / borders */
   --line: #22242a;
@@ -37,10 +39,11 @@
   --danger-border: rgba(255, 86, 104, 0.35);
   --star: #ffbf00;
 
-  /* Shape + elevation */
-  --radius: 8px;
-  --radius-sm: 6px;
-  --radius-lg: 12px;
+  /* Shape + elevation — compact radii matching the Home page (6px
+     surfaces, 5px buttons/inputs, 10px hero cards). */
+  --radius: 6px;
+  --radius-sm: 5px;
+  --radius-lg: 10px;
   --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.25);
   --shadow-glow: 0 8px 24px rgba(124, 41, 221, 0.28);
   --grad-primary: linear-gradient(100deg, #7c29dd, #a84dff);
@@ -92,6 +95,7 @@ button {
 
 a {
   color: inherit;
+  text-decoration: none;
 }
 
 img {

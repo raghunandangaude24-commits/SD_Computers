@@ -14,6 +14,7 @@ import { userService } from "../services/userService.js";
 import { orderService } from "../services/orderService.js";
 import PageState from "../components/PageState.jsx";
 import OrderCard from "../components/OrderCard.jsx";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -164,6 +165,12 @@ export default function ProfilePage() {
 
   return (
     <div className="profile-page">
+      <Breadcrumbs
+        items={[
+          { label: "Home", to: "/" },
+          { label: "My Account" },
+        ]}
+      />
       <div className="profile-head">
         <div className="profile-avatar">
           {user?.name?.trim().charAt(0).toUpperCase()}
