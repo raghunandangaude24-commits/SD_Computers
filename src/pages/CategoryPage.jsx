@@ -282,7 +282,7 @@ export default function CategoryPage() {
         <main className="content">
           <div className="title-row">
             <div className="title-content">
-              <h2>{category?.name || "Category"}</h2>
+              <h1>{category?.name || "Category"}</h1>
               <p>
                 {category?.description && (
                   <span className="category-description">{category.description}</span>

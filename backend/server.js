@@ -40,6 +40,14 @@ app.use(
 
 app.use(express.json());
 
+// Minimal security headers (dependency-free — helmet-style basics).
+app.use((req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("X-Frame-Options", "DENY");
+  res.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  next();
+});
+
 // --- Routes ---
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "SD Computers API is running" });
@@ -65,6 +73,12 @@ const PORT = process.env.PORT || 5000;
 
 async function start() {
   if (!process.env.JWT_SECRET) {
+    // Without a secret, login would crash at runtime (jwt.sign throws) —
+    // refuse to start in production, warn in development.
+    if (process.env.NODE_ENV === "production") {
+      console.error("[server] JWT_SECRET must be set in production — refusing to start.");
+      process.exit(1);
+    }
     console.warn("[warn] JWT_SECRET is not set — using an insecure development default.");
   }
 

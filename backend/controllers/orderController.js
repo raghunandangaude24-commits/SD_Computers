@@ -135,10 +135,18 @@ export const createOrder = asyncHandler(async (req, res) => {
           line.product.image,
         ]
       );
-      await connection.query(
+      const [stockResult] = await connection.query(
         "UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?",
         [line.quantity, line.product.id, line.quantity]
       );
+      // The pre-check above can lose a race with a concurrent order —
+      // if the guarded UPDATE matched no rows we must not oversell.
+      if (stockResult.affectedRows === 0) {
+        const err = new Error("Stock changed while placing the order");
+        err.status = 409;
+        err.clientMessage = `"${line.product.name}" just went out of stock — please review your cart`;
+        throw err;
+      }
     }
 
     // Only the purchased items leave the cart — unselected items stay.

@@ -14,12 +14,22 @@ const CART_SELECT = `p.id, p.slug, p.name, p.brand, p.category, p.price, p.old_p
   p.discount, p.image, p.description, p.specifications, p.facets, p.stock,
   p.rating, p.review_count, p.featured, p.popular, ci.quantity`;
 
-async function ensureCart(userId) {
-  const [rows] = await pool.query("SELECT id FROM carts WHERE user_id = ? LIMIT 1", [userId]);
+async function ensureCart(userId, db = pool) {
+  const [rows] = await db.query("SELECT id FROM carts WHERE user_id = ? LIMIT 1", [userId]);
   if (rows[0]) return rows[0].id;
 
-  const [result] = await pool.query("INSERT INTO carts (user_id) VALUES (?)", [userId]);
-  return result.insertId;
+  try {
+    const [result] = await db.query("INSERT INTO carts (user_id) VALUES (?)", [userId]);
+    return result.insertId;
+  } catch (err) {
+    // A concurrent request created the cart between our SELECT and INSERT
+    // (unique key uq_carts_user) — use the row it created instead of 500ing.
+    if (err && err.code === "ER_DUP_ENTRY") {
+      const [again] = await db.query("SELECT id FROM carts WHERE user_id = ? LIMIT 1", [userId]);
+      if (again[0]) return again[0].id;
+    }
+    throw err;
+  }
 }
 
 /** Load the full cart payload for a user (items + totals). */
@@ -189,6 +199,11 @@ export const clearCart = asyncHandler(async (req, res) => {
  * POST /api/cart/sync  (protected)
  * { items: [{ productId, quantity }] } — merges guest-cart contents
  * into the server cart after login (quantities add up).
+ *
+ * Runs in one transaction and never fails the merge because of a single
+ * stale line: products deleted since the guest added them are skipped,
+ * and quantities are clamped to current stock (the returned cart is the
+ * source of truth for what was actually merged).
  */
 export const syncCart = asyncHandler(async (req, res) => {
   const items = req.body?.items;
@@ -198,43 +213,58 @@ export const syncCart = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Validation error", errors });
   }
 
+  // The cart row is permanent — create it before opening the transaction
+  // so a first-ever-cart race can't abort the merge mid-flight.
   const cartId = await ensureCart(req.user.id);
 
-  for (const item of items) {
-    const productId = Number(item.productId);
-    const quantity = Number(item.quantity);
+  const connection = await pool.getConnection();
+  const skipped = [];
+  try {
+    await connection.beginTransaction();
 
-    const [productRows] = await pool.query(
-      "SELECT id, stock FROM products WHERE id = ? LIMIT 1",
-      [productId]
-    );
-    if (!productRows[0]) {
-      return res.status(404).json({
-        success: false,
-        message: `Product #${productId} not found`,
-      });
+    for (const item of items) {
+      const productId = Number(item.productId);
+      const quantity = Number(item.quantity);
+
+      const [productRows] = await connection.query(
+        "SELECT id, stock FROM products WHERE id = ? LIMIT 1",
+        [productId]
+      );
+      if (!productRows[0]) {
+        skipped.push(productId);
+        continue;
+      }
+
+      const stock = Number(productRows[0].stock ?? 0);
+      if (stock <= 0) {
+        skipped.push(productId);
+        continue;
+      }
+
+      const [existing] = await connection.query(
+        "SELECT quantity FROM cart_items WHERE cart_id = ? AND product_id = ? LIMIT 1",
+        [cartId, productId]
+      );
+      const newQuantity = Math.min(
+        (existing[0] ? Number(existing[0].quantity) : 0) + quantity,
+        stock
+      );
+
+      await connection.query(
+        `INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE quantity = ?`,
+        [cartId, productId, newQuantity, newQuantity]
+      );
     }
 
-    const [existing] = await pool.query(
-      "SELECT quantity FROM cart_items WHERE cart_id = ? AND product_id = ? LIMIT 1",
-      [cartId, productId]
-    );
-    const newQuantity = (existing[0] ? Number(existing[0].quantity) : 0) + quantity;
-
-    if (newQuantity > Number(productRows[0].stock)) {
-      return res.status(400).json({
-        success: false,
-        message: `Only ${Number(productRows[0].stock)} unit(s) of this product are in stock`,
-      });
-    }
-
-    await pool.query(
-      `INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE quantity = ?`,
-      [cartId, productId, newQuantity, newQuantity]
-    );
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
   }
 
   const cart = await fetchCartForUser(req.user.id);
-  return res.json({ success: true, cart });
+  return res.json({ success: true, cart, ...(skipped.length > 0 ? { skipped } : {}) });
 });

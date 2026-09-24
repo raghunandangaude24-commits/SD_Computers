@@ -56,10 +56,18 @@ export const updateProfile = asyncHandler(async (req, res) => {
     return res.status(409).json({ success: false, message: "Email already in use" });
   }
 
-  await pool.query(
-    "UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?",
-    [cleanString(name), normalizedEmail, cleanString(phone), req.user.id]
-  );
+  try {
+    await pool.query(
+      "UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?",
+      [cleanString(name), normalizedEmail, cleanString(phone), req.user.id]
+    );
+  } catch (err) {
+    // Race on the unique email key (the pre-check above lost a race).
+    if (err && err.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({ success: false, message: "Email already in use" });
+    }
+    throw err;
+  }
 
   const [rows] = await pool.query(
     "SELECT id, name, email, phone, role, created_at FROM users WHERE id = ? LIMIT 1",

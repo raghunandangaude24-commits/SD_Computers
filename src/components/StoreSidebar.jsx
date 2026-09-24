@@ -51,18 +51,6 @@ export default function StoreSidebar() {
             {category.name}
           </Link>
         ))}
-      <div className="build-box">
-        <strong>
-          BUILD YOUR PC <em>→</em>
-        </strong>
-        <small>
-          Not sure what fits best?
-          <br />
-          Browse our full catalog
-        </small>
-        <Link to="/search">Start Building&nbsp; →</Link>
-        <div className="mini-case">▥</div>
-      </div>
     </aside>
   );
 }

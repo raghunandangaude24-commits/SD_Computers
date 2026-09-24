@@ -39,6 +39,24 @@ export default function SearchResults() {
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
 
+  // Identity of the query the current `loading/error/results/pagination`
+  // state belongs to. On an in-place URL change (e.g. clicking a category
+  // while already on /search) the previous response's totals/results would
+  // otherwise show under the new label until the new response lands — so
+  // anything not matching the active query counts as busy.
+  const queryKey = JSON.stringify({
+    searchTerm,
+    category,
+    selectedBrands,
+    priceMin,
+    priceMax,
+    sort,
+    page,
+    retryCount,
+  });
+  const [loadedKey, setLoadedKey] = useState(null);
+  const busy = loading || loadedKey !== queryKey;
+
   useEffect(() => {
     let cancelled = false;
 
@@ -58,18 +76,20 @@ export default function SearchResults() {
         setPagination(data.pagination ?? {});
         if (Array.isArray(data.brands)) setBrandFacets(data.brands);
         setError(null);
+        setLoadedKey(queryKey);
         setLoading(false);
       })
       .catch((err) => {
         if (cancelled) return;
         setError(err.message || "Failed to load search results.");
+        setLoadedKey(queryKey);
         setLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [searchTerm, category, selectedBrands, priceMin, priceMax, sort, page, retryCount]);
+  }, [searchTerm, category, selectedBrands, priceMin, priceMax, sort, page, retryCount, queryKey]);
 
   // Sidebar categories come from the backend so the list never goes stale.
   useEffect(() => {
@@ -159,7 +179,7 @@ export default function SearchResults() {
         onRetry={() => setRetryCount((count) => count + 1)}
       />
     );
-  } else if (loading) {
+  } else if (busy) {
     productArea = <PageState variant="loading" />;
   } else if (results.length === 0) {
     productArea = (
@@ -245,9 +265,9 @@ export default function SearchResults() {
         <main className="content">
           <div className="title-row">
             <div className="title-content">
-              <h2>Search Results</h2>
+              <h1>Search Results</h1>
               <p>
-                Showing {loading ? "…" : pagination.total}{" "}
+                Showing {busy ? "…" : pagination.total}{" "}
                 {pagination.total === 1 ? "result" : "results"}
                 {searchTerm ? (
                   <>

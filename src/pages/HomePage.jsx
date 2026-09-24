@@ -11,60 +11,11 @@ import { categoryIcon } from "../constants.js";
  * - "Deals of the Day" uses GET /api/search (newest)
  * - "Popular Picks" uses GET /api/search?popular=1&sort=rating
  * No hardcoded product or category arrays remain.
- * The left category rail and right widget rail come from the shared
- * Layout shell (StoreSidebar / StoreRail) — same as every other page.
+ * The left category rail comes from the shared Layout shell
+ * (StoreSidebar) — same as every other page. The hero benefits strip
+ * (Genuine Products / Fast Delivery / Expert Support / Best Prices)
+ * was removed at the user's request.
  */
-
-function Benefits() {
-  return (
-    <section className="benefits">
-      <div>
-        <i>♢</i>
-        <span>
-          <strong>100% Genuine Products</strong>
-          <small>
-            Trusted & genuine products
-            <br />
-            with warranty
-          </small>
-        </span>
-      </div>
-      <div>
-        <i>▱</i>
-        <span>
-          <strong>Fast Delivery</strong>
-          <small>
-            Quick delivery at your
-            <br />
-            doorstep
-          </small>
-        </span>
-      </div>
-      <div>
-        <i>♧</i>
-        <span>
-          <strong>Expert Support</strong>
-          <small>
-            Get help from our
-            <br />
-            PC experts
-          </small>
-        </span>
-      </div>
-      <div>
-        <i>♙</i>
-        <span>
-          <strong>Best Prices</strong>
-          <small>
-            Competitive prices
-            <br />
-            everyday
-          </small>
-        </span>
-      </div>
-    </section>
-  );
-}
 
 export default function HomePage() {
   const [categories, setCategories] = useState([]);
@@ -140,8 +91,6 @@ export default function HomePage() {
           <div className="hero-pc">▦</div>
           <div className="dots">● ● ● ●</div>
         </section>
-
-        <Benefits />
 
         <section className="section">
           <div className="section-head">

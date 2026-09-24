@@ -19,9 +19,9 @@ export default function WishlistPage() {
       />
       <div className="title-row">
         <div className="title-content">
-          <h2>
+          <h1>
             <Heart size={26} className="inline-icon" /> Wishlist
-          </h2>
+          </h1>
           <p>
             {wishlist.length === 1
               ? "1 saved product"

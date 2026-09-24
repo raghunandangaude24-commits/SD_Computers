@@ -103,6 +103,7 @@ export default function Login() {
 
           <input
             type="email"
+            aria-label="Email address"
             placeholder="Email address"
             required
             value={email}
@@ -117,6 +118,7 @@ export default function Login() {
 
           <input
             type={showPassword ? "text" : "password"}
+            aria-label="Password"
             placeholder="Password"
             required
             value={password}

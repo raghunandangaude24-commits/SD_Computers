@@ -28,5 +28,5 @@
     <circle cx="-92" cy="62" r="10" fill="url(#g)"/>
     <circle cx="-56" cy="62" r="10" fill="url(#g)"/>
     <circle cx="-20" cy="62" r="10" fill="url(#g)"/>
-    fill="#e9e5f6" <circle cx="80" cy="62" r="6" fill="#e9e5f6"/></g>
+    <circle cx="80" cy="62" r="6" fill="#e9e5f6"/></g>
 </svg>

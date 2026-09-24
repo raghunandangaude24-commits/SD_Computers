@@ -80,6 +80,9 @@ body {
   min-width: 320px;
   background: var(--bg);
   color: var(--text);
+  /* Airier default rhythm for the whole app — components inherit this
+     unless they set their own line-height. */
+  line-height: 1.5;
 }
 
 button,
@@ -96,6 +99,13 @@ button {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* The UA renders <small> at ~0.83em, which dips below our 10px legibility
+   floor when it sits on compact text — clamp it. Rules that target a
+   specific <small> (class selectors in the page stylesheets) still win. */
+small {
+  font-size: max(10px, 0.85em);
 }
 
 img {

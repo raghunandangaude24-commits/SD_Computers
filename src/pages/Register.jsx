@@ -129,6 +129,7 @@ export default function Register() {
 
           <input
             type="text"
+            aria-label="Full name"
             placeholder="Full Name"
             required
             value={name}
@@ -143,6 +144,7 @@ export default function Register() {
 
           <input
             type="email"
+            aria-label="Email address"
             placeholder="Email address"
             required
             value={email}
@@ -171,6 +173,7 @@ export default function Register() {
 
             <input
               type="tel"
+              aria-label="Mobile number"
               placeholder="10 digit mobile number"
               required
               value={phone}
@@ -188,6 +191,7 @@ export default function Register() {
 
           <input
             type={showPassword ? "text" : "password"}
+            aria-label="Password"
             placeholder="Password"
             required
             value={password}
@@ -211,6 +215,7 @@ export default function Register() {
 
           <input
             type={showConfirm ? "text" : "password"}
+            aria-label="Confirm password"
             placeholder="Confirm password"
             required
             value={confirmPassword}

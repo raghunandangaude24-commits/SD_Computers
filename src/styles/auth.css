@@ -67,7 +67,7 @@
 
   color: var(--muted);
 
-  font-size: 8px;
+  font-size: 10px;
 
   letter-spacing: 0.7px;
 }
@@ -81,7 +81,7 @@
   width: 400px;
   max-width: 100%;
 
-  padding: 32px;
+  padding: 36px;
 
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -435,7 +435,7 @@
 
   color: var(--muted);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
 }
 
@@ -486,7 +486,7 @@
   cursor: pointer;
 
   font-family: inherit;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
 
   transition:
@@ -593,7 +593,7 @@
 
   color: var(--muted);
 
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -671,7 +671,7 @@
 
   text-align: center;
 
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.4;
 }
 
@@ -701,7 +701,7 @@
   }
 
   .logo-text small {
-    font-size: 7px;
+    font-size: 10px;
   }
 
   /* Card */

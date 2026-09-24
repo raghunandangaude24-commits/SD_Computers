@@ -18,7 +18,7 @@
   width: 278px;
   flex-shrink: 0;
   height: max-content;
-  padding: 0 0 18px;
+  padding: 0 0 24px;
   border-radius: 6px;
   overflow: hidden;
   /* Same surface as the Home page's left rail so every page reads as
@@ -54,7 +54,7 @@
 }
 
 .sidebar-section {
-  margin-top: 14px;
+  margin-top: 18px;
 }
 
 /* First section sits flush against the top of the panel (mirrors the
@@ -86,16 +86,16 @@
 .category-list {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 5px;
 }
 
 .category {
-  min-height: 40px;
+  min-height: 44px;
   width: 100%;
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 10px 15px;
+  padding: 12px 15px;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -113,7 +113,7 @@
 .category .cat-count {
   margin-left: auto;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .category:hover {
@@ -133,8 +133,8 @@
 /* FILTER */
 
 .filter-section {
-  margin-top: 25px;
-  padding-top: 23px;
+  margin-top: 28px;
+  padding-top: 26px;
   border-top: 1px solid var(--line-soft);
 }
 

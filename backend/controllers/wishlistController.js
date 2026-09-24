@@ -3,12 +3,21 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { toProductJson } from "../utils/productMapper.js";
 import { isValidId } from "../utils/validation.js";
 
-async function ensureWishlist(userId) {
-  const [rows] = await pool.query("SELECT id FROM wishlists WHERE user_id = ? LIMIT 1", [userId]);
+async function ensureWishlist(userId, db = pool) {
+  const [rows] = await db.query("SELECT id FROM wishlists WHERE user_id = ? LIMIT 1", [userId]);
   if (rows[0]) return rows[0].id;
 
-  const [result] = await pool.query("INSERT INTO wishlists (user_id) VALUES (?)", [userId]);
-  return result.insertId;
+  try {
+    const [result] = await db.query("INSERT INTO wishlists (user_id) VALUES (?)", [userId]);
+    return result.insertId;
+  } catch (err) {
+    // Concurrent create (unique key uq_wishlists_user) — reuse its row.
+    if (err && err.code === "ER_DUP_ENTRY") {
+      const [again] = await db.query("SELECT id FROM wishlists WHERE user_id = ? LIMIT 1", [userId]);
+      if (again[0]) return again[0].id;
+    }
+    throw err;
+  }
 }
 
 /** Load the full wishlist product list for a user. */

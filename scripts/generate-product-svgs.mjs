@@ -60,6 +60,15 @@ const SOFT = 'fill="none" stroke="#e9e5f6" stroke-width="5"';
 const SOFT_FILL = 'fill="#e9e5f6"';
 const DIM_FILL = 'fill="#3a2f63"';
 
+/**
+ * Same strokes with an explicit width. XML forbids duplicate attributes,
+ * so these must be used instead of appending `stroke-width="..."` after
+ * G_STROKE/SOFT (which already carry one) — duplicate attributes make the
+ * whole SVG fail to parse and render as a broken image.
+ */
+const gStroke = (w) => `fill="none" stroke="url(#g)" stroke-width="${w}"`;
+const softStroke = (w) => `fill="none" stroke="#e9e5f6" stroke-width="${w}"`;
+
 const glyphs = {
   processors: `
     <rect x="-110" y="-110" width="220" height="220" rx="26" ${G_STROKE}/>
@@ -86,19 +95,19 @@ const glyphs = {
     <circle cx="-92" cy="62" r="10" fill="url(#g)"/>
     <circle cx="-56" cy="62" r="10" fill="url(#g)"/>
     <circle cx="-20" cy="62" r="10" fill="url(#g)"/>
-    ${SOFT_FILL} <circle cx="80" cy="62" r="6" fill="#e9e5f6"/>
+    <circle cx="80" cy="62" r="6" fill="#e9e5f6"/>
   `,
 
   "graphics-cards-gpu": `
     <rect x="-130" y="-70" width="260" height="140" rx="16" ${G_STROKE}/>
     <rect x="70" y="-70" width="60" height="140" rx="4" fill="url(#g)" opacity="0.85"/>
-    <circle cx="-78" cy="0" r="38" ${G_STROKE} stroke-width="8"/>
+    <circle cx="-78" cy="0" r="38" ${gStroke(8)}/>
     <circle cx="-78" cy="0" r="8" ${SOFT_FILL}/>
     <path d="M -78 -38 A 38 38 0 0 1 -40 0" ${SOFT}/>
     <path d="M -78 38 A 38 38 0 0 1 -116 0" ${SOFT}/>
-    <circle cx="20" cy="0" r="30" ${G_STROKE} stroke-width="7"/>
+    <circle cx="20" cy="0" r="30" ${gStroke(7)}/>
     <circle cx="20" cy="0" r="7" ${SOFT_FILL}/>
-    ${SOFT_FILL} <rect x="-48" y="-132" width="10" height="26" rx="3" fill="#e9e5f6"/>
+    <rect x="-48" y="-132" width="10" height="26" rx="3" fill="#e9e5f6"/>
   `,
 
   ram: `
@@ -116,7 +125,7 @@ const glyphs = {
 
   storage: `
     <rect x="-120" y="-88" width="240" height="176" rx="18" ${G_STROKE}/>
-    <circle cx="-44" cy="0" r="46" ${G_STROKE} stroke-width="9"/>
+    <circle cx="-44" cy="0" r="46" ${gStroke(9)}/>
     <circle cx="-44" cy="0" r="14" fill="url(#g)"/>
     <path d="M -44 -46 A 46 46 0 0 1 2 0" ${SOFT}/>
     ${[-62, -26].map((x) => `<rect x="${x}" y="14" width="28" height="9" rx="4" fill="url(#g)"/>`).join("")}
@@ -128,10 +137,10 @@ const glyphs = {
 
   "power-supplies": `
     <rect x="-120" y="-100" width="240" height="200" rx="18" ${G_STROKE}/>
-    <circle cx="0" cy="-18" r="52" ${G_STROKE} stroke-width="8"/>
+    <circle cx="0" cy="-18" r="52" ${gStroke(8)}/>
     <circle cx="0" cy="-18" r="12" fill="url(#g)"/>
     ${[0, 60, 120, 180, 240, 300].map((deg) => `
-      <ellipse cx="0" cy="-52" rx="14" ry="34" transform="rotate(${deg})" ${SOFT} stroke-width="5"/>
+      <ellipse cx="0" cy="-52" rx="14" ry="34" transform="rotate(${deg})" ${softStroke(5)}/>
     `).join("")}
     ${[-96, -60, -24, 12, 48, 84].map((y) => (y > -96 ? `
       <rect x="-96" y="${y}" width="192" height="8" rx="4" fill="url(#g)" opacity="0.75"/>
@@ -139,14 +148,14 @@ const glyphs = {
   `,
 
   cooling: `
-    <circle cx="0" cy="0" r="88" ${G_STROKE} stroke-width="11"/>
-    <circle cx="0" cy="0" r="58" ${SOFT} stroke-width="4"/>
+    <circle cx="0" cy="0" r="88" ${gStroke(11)}/>
+    <circle cx="0" cy="0" r="58" ${softStroke(4)}/>
     <circle cx="0" cy="0" r="16" fill="url(#g)"/>
     ${[0, 51.4, 102.8, 154.2, 205.7, 257.1, 308.5].map((deg) => `
-      <path d="M 0 -58 Q 30 -92 58 -58" transform="rotate(${deg})" ${SOFT} stroke-width="6"/>
+      <path d="M 0 -58 Q 30 -92 58 -58" transform="rotate(${deg})" ${softStroke(6)}/>
     `).join("")}
     <rect x="-30" y="88" width="60" height="34" rx="8" fill="url(#g)"/>
-    <line x1="0" y1="122" x2="0" y2="142" ${G_STROKE} stroke-width="8"/>
+    <line x1="0" y1="122" x2="0" y2="142" ${gStroke(8)}/>
   `,
 
   "pc-cases": `
@@ -163,17 +172,17 @@ const glyphs = {
   monitors: `
     <rect x="-130" y="-92" width="260" height="164" rx="14" ${G_STROKE}/>
     <rect x="-118" y="-80" width="236" height="140" rx="10" fill="url(#g)" opacity="0.12"/>
-    <rect x="-118" y="-80" width="236" height="140" rx="10" ${SOFT} stroke-width="3"/>
-    <path d="M 0 72 L 0 118" ${G_STROKE} stroke-width="9"/>
-    <path d="M -58 118 L 58 118" ${G_STROKE} stroke-width="9"/>
-    <path d="M -58 118 Q 0 132 58 118" ${G_STROKE} stroke-width="9"/>
+    <rect x="-118" y="-80" width="236" height="140" rx="10" ${softStroke(3)}/>
+    <path d="M 0 72 L 0 118" ${gStroke(9)}/>
+    <path d="M -58 118 L 58 118" ${gStroke(9)}/>
+    <path d="M -58 118 Q 0 132 58 118" ${gStroke(9)}/>
     <line x1="-84" y1="-44" x2="84" y2="-44" stroke="#e9e5f6" stroke-width="6" stroke-linecap="round"/>
     <line x1="-84" y1="-18" x2="60" y2="-18" stroke="#7c29dd" stroke-width="6" stroke-linecap="round" opacity="0.85"/>
   `,
 
   peripherals: `
     <rect x="-150" y="10" width="232" height="88" rx="12" ${G_STROKE}/>
-    <g ${SOFT} stroke-width="5">
+    <g ${softStroke(5)}>
       <line x1="-118" y1="-8" x2="-118" y2="82"/>
       <line x1="-46" y1="-8" x2="-46" y2="82"/>
       <line x1="26" y1="-8" x2="26" y2="82"/>
@@ -184,8 +193,8 @@ const glyphs = {
     <rect x="122" y="-8" width="46" height="62" rx="8" fill="url(#g)" opacity="0.9"/>
     <rect x="-34" y="-150" width="96" height="124" rx="34" ${G_STROKE}/>
     <rect x="-34" y="-150" width="96" height="124" rx="34" fill="url(#g)" opacity="0.1"/>
-    <line x1="14" y1="-150" x2="14" y2="-30" ${SOFT} stroke-width="4"/>
-    <circle cx="14" cy="-106" r="16" ${SOFT} stroke-width="5"/>
+    <line x1="14" y1="-150" x2="14" y2="-30" ${softStroke(4)}/>
+    <circle cx="14" cy="-106" r="16" ${softStroke(5)}/>
     <circle cx="14" cy="-106" r="5" fill="url(#g)"/>
   `,
 };

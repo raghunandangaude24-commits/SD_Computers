@@ -98,10 +98,23 @@ export const createReview = asyncHandler(async (req, res) => {
     });
   }
 
-  const [result] = await pool.query(
-    "INSERT INTO reviews (user_id, product_id, rating, comment) VALUES (?, ?, ?, ?)",
-    [req.user.id, productId, Number(rating), String(comment ?? "").trim()]
-  );
+  let result;
+  try {
+    [result] = await pool.query(
+      "INSERT INTO reviews (user_id, product_id, rating, comment) VALUES (?, ?, ?, ?)",
+      [req.user.id, productId, Number(rating), String(comment ?? "").trim()]
+    );
+  } catch (err) {
+    // Race on the (user_id, product_id) unique key — another request
+    // inserted the same review between our check and this INSERT.
+    if (err && err.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({
+        success: false,
+        message: "You have already reviewed this product",
+      });
+    }
+    throw err;
+  }
 
   await recomputeProductRating(pool, productId);
 

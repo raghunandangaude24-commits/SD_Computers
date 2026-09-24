@@ -5,7 +5,6 @@ import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import RequireAuth from "./components/RequireAuth.jsx";
 import StoreSidebar from "./components/StoreSidebar.jsx";
-import StoreRail from "./components/StoreRail.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
@@ -42,9 +41,11 @@ function ScrollToTop() {
  * customer-facing route. Auth pages (login/register) render standalone.
  *
  * The content sits inside the same three-column spine the Home page was
- * built on: left category rail + page content + right widget rail. The
- * Search/Category pages skip the shared left rail because their filter
- * sidebar stands in for it.
+ * built on: left category rail + page content. The Search/Category
+ * pages skip the shared left rail because their filter sidebar
+ * stands in for it. (The old right widget rail — PC builder,
+ * newsletter, cart CTA — was removed at the user's request; the
+ * cart lives in the header navbar only.)
  */
 function Layout() {
   const { pathname } = useLocation();
@@ -60,7 +61,6 @@ function Layout() {
         <div className={`store-layout${hasFilterRail ? " no-left" : ""}`}>
           {!hasFilterRail && <StoreSidebar />}
           <Outlet />
-          <StoreRail />
         </div>
       </main>
       <Footer />

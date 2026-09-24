@@ -88,9 +88,9 @@ export default function OrdersPage() {
 
       <div className="title-row">
         <div className="title-content">
-          <h2>
+          <h1>
             <Package size={26} className="inline-icon" /> My Orders
-          </h2>
+          </h1>
           <p>
             {orders.length} order{orders.length === 1 ? "" : "s"} placed
           </p>

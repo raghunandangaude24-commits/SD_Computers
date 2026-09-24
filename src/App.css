@@ -10,15 +10,15 @@
     background: radial-gradient(circle at 72% 10%, #171025 0, transparent 30%), #050608;
 }
 
-/* The shared storefront spine: category rail + page content + widget
-   rail — the three-column shell the Home page was built on. Every
-   storefront route renders inside it; Search/Category use `.no-left`
-   because their filter sidebar stands in for the left rail. */
+/* The shared storefront spine: category rail + page content — the
+   two-column shell every storefront route renders inside; Home is
+   built on it. Search/Category use `.no-left` because their filter
+   sidebar stands in for the left rail. */
 .store-layout {
     display: grid;
-    grid-template-columns: 170px minmax(0, 1fr) 138px;
-    gap: 16px;
-    margin-top: 18px;
+    grid-template-columns: 170px minmax(0, 1fr);
+    gap: 20px;
+    margin-top: 22px;
 }
 
 .store-layout>* {
@@ -26,7 +26,7 @@
 }
 
 .store-layout.no-left {
-    grid-template-columns: minmax(0, 1fr) 138px;
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .sidebar {
@@ -46,7 +46,7 @@
     color: var(--text-dim);
     padding: 11px 15px;
     text-align: left;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .sidebar button:hover {
@@ -71,42 +71,11 @@
     border-radius: var(--radius-sm);
     background: rgba(120, 18, 34, 0.2);
     color: var(--danger);
-    font-size: 10px;
+    font-size: 11px;
     line-height: 1.4;
 }
 
-.build-box {
-    margin: 26px 8px 9px;
-    min-height: 210px;
-    padding: 13px 9px;
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(155deg, #1d162d, #0c0d12);
-    border-radius: 5px;
-}
-
-.build-box strong,
-.build-box small {
-    display: block;
-    font-size: 10px;
-}
-
-.build-box em {
-    float: right;
-    color: var(--purple-bright);
-    font-style: normal;
-}
-
-.build-box small {
-    margin-top: 8px;
-    line-height: 1.5;
-    color: #a8a7b0;
-}
-
-.build-box button,
-.hero-banner button,
-.newsletter button,
-.rail-builder button {
+.hero-banner button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -122,26 +91,15 @@
     transition: filter 0.2s ease;
 }
 
-.mini-case,
-.rail-builder div,
-.build-mini span {
-    color: #8e3fea;
-    font-size: 73px;
-    position: absolute;
-    right: 10px;
-    bottom: 0;
-    opacity: .65;
-}
-
 .home-main {
     min-width: 0;
 }
 
 .hero-banner {
-    height: 248px;
+    height: 292px;
     border: 1px solid #1d2029;
     border-radius: 6px;
-    padding: 28px 40px;
+    padding: 34px 44px;
     position: relative;
     overflow: hidden;
     background: radial-gradient(circle at 75% 45%, #181b33, #06080d 55%);
@@ -198,59 +156,15 @@
     color: #bd72ff;
 }
 
-.benefits {
-    margin-top: 14px;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    background: #101216;
-    border: 1px solid #1e2026;
-    border-radius: 6px;
-    padding: 12px 18px;
-}
-
-.benefits>div {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    border-right: 1px solid #292b31;
-    padding: 0 18px;
-}
-
-.benefits>div:last-child {
-    border: 0;
-}
-
-.benefits i {
-    color: #a649ff;
-    font-size: 28px;
-    font-style: normal;
-}
-
-.benefits strong,
-.benefits small {
-    display: block;
-}
-
-.benefits strong {
-    font-size: 11px;
-}
-
-.benefits small {
-    color: #a5a6ae;
-    font-size: 9px;
-    line-height: 1.4;
-    margin-top: 5px;
-}
-
 .section {
-    margin-top: 16px;
+    margin-top: 30px;
 }
 
 .section-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
 }
 
 .section-head h2 {
@@ -284,17 +198,17 @@
 .category-grid {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
-    gap: 10px;
+    gap: 14px;
 }
 
 .category-tile {
     min-width: 0;
-    padding: 14px 8px 12px;
+    padding: 18px 10px 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 7px;
+    gap: 9px;
     background: var(--panel-2);
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -330,76 +244,7 @@
 
 .category-tile small {
     color: var(--muted);
-    font-size: 9px;
-}
-
-.right-rail>div {
-    border: 1px solid #23252c;
-    border-radius: 6px;
-    padding: 13px 10px;
-    margin-bottom: 10px;
-    background: #111318;
-}
-
-.rail-builder strong,
-.rail-builder small,
-.newsletter strong,
-.newsletter small,
-.mini-cart-cta strong,
-.mini-cart-cta small {
-    display: block;
-}
-
-.rail-builder strong,
-.newsletter strong,
-.mini-cart-cta strong {
     font-size: 10px;
-}
-
-.rail-builder small,
-.newsletter small,
-.mini-cart-cta small {
-    color: #a3a4ac;
-    font-size: 8px;
-    line-height: 1.5;
-    margin-top: 7px;
-}
-
-.rail-builder div {
-    position: static;
-    font-size: 70px;
-    text-align: center;
-}
-
-.rail-builder button,
-.newsletter button,
-.mini-cart-cta button {
-    border: 0;
-    margin-top: 5px;
-    width: 100%;
-}
-
-.newsletter {
-    margin-top: 4px;
-}
-
-.newsletter input {
-    width: 100%;
-    border: 0;
-    background: #202228;
-    color: white;
-    padding: 8px;
-    font-size: 9px;
-    margin-top: 13px;
-    border-radius: 3px;
-}
-
-.newsletter-message {
-    color: var(--success);
-}
-
-.mini-cart-cta {
-    margin-top: 4px;
 }
 
 .breadcrumbs {
@@ -475,7 +320,7 @@
 
 .video-thumb small {
     display: block;
-    font-size: 10px;
+    font-size: 11px;
     position: absolute;
     right: 5px;
     bottom: 5px;
@@ -526,7 +371,7 @@
 
 .rating span {
     color: #c0c0c6;
-    font-size: 10px;
+    font-size: 11px;
     margin-left: 5px;
 }
 
@@ -537,7 +382,7 @@
 }
 
 .detail-price b {
-    font-size: 10px;
+    font-size: 11px;
     background: #7025d4;
     padding: 5px;
     margin-left: 8px;
@@ -553,7 +398,7 @@
 
 .detail-price small {
     color: #aaaab1;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 400;
 }
 
@@ -576,7 +421,7 @@
 }
 
 .stock span {
-    font-size: 10px;
+    font-size: 11px;
     color: #babac0;
     margin-left: 20px;
 }
@@ -642,7 +487,7 @@
 
 .assurances small {
     color: #9e9fa7;
-    font-size: 9px;
+    font-size: 10px;
 }
 
 .buy-panel {
@@ -701,7 +546,7 @@
     border-radius: 5px;
     margin-top: 13px;
     padding: 12px 9px;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .delivery>div {
@@ -716,14 +561,14 @@
     border: 1px solid #252830;
     color: white;
     padding: 8px;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .delivery button {
     background: #7626d6;
     border: 0;
     color: white;
-    font-size: 10px;
+    font-size: 11px;
     padding: 0 10px;
 }
 
@@ -754,11 +599,11 @@
     border: 1px solid #252830;
     border-radius: 5px;
     padding: 12px 9px;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .payment-box strong {
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .payment-box div {
@@ -774,51 +619,15 @@
     border-radius: 4px;
     background: #1d2129;
     color: #cfd5e0;
-    font-size: 8px;
+    font-size: 10px;
     font-weight: 600;
 }
 
 .buy-links {
     display: flex;
     justify-content: space-between;
-    font-size: 10px;
-    padding: 20px 0;
-}
-
-.build-mini {
-    background: #1b1230;
-    padding: 13px 10px;
-    position: relative;
-    min-height: 85px;
-}
-
-.build-mini strong,
-.build-mini small {
-    display: block;
     font-size: 11px;
-}
-
-.build-mini small {
-    color: #aaa8b3;
-    font-size: 9px;
-    margin-top: 6px;
-}
-
-.build-mini button {
-    border: 0;
-    color: #b457ff;
-    background: transparent;
-    padding: 0;
-    font-size: 10px;
-    margin-top: 13px;
-}
-
-.build-mini span {
-    font-size: 45px;
-}
-
-.detail-page+.benefits {
-    margin-top: 23px;
+    padding: 20px 0;
 }
 
 @media (max-width: 1050px) {
@@ -828,10 +637,6 @@
 
     .store-layout.no-left {
         grid-template-columns: minmax(0, 1fr);
-    }
-
-    .right-rail {
-        display: none;
     }
 
     .detail-page {
@@ -861,26 +666,13 @@
     }
 
     .hero-banner {
-        height: 240px;
+        height: 276px;
         padding: 27px 20px;
     }
 
     .hero-pc {
         right: -5%;
         opacity: .5;
-    }
-
-    .benefits {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px 0;
-    }
-
-    .benefits>div {
-        padding: 0 8px;
-    }
-
-    .benefits>div:nth-child(2) {
-        border: 0;
     }
 
     .category-grid {
@@ -914,10 +706,6 @@
     .thumbs button {
         height: 65px;
     }
-
-    .detail-page+.benefits {
-        margin-top: 15px;
-    }
 }
 
 /* Cart layout */
@@ -929,7 +717,7 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    margin: 8px 0 22px;
+    margin: 12px 0 26px;
 }
 
 .cart-icon {
@@ -952,7 +740,7 @@
 .cart-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 300px;
-    gap: 20px;
+    gap: 24px;
     align-items: start;
 }
 
@@ -964,7 +752,7 @@
 .cart-item {
     display: grid;
     grid-template-columns: 22px minmax(230px, 1fr) 92px 112px 92px 34px;
-    gap: 12px;
+    gap: 14px;
     align-items: center;
 }
 
@@ -996,7 +784,7 @@
     border: 1px solid #8c4ce8;
     border-radius: 4px;
     color: #d4adff;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .product-cell {
@@ -1036,7 +824,7 @@
 
 .stock {
     color: #70d66a;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .price-box,
@@ -1172,13 +960,13 @@
 }
 
 .feature-item strong {
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .feature-item small {
     margin-top: 3px;
     color: #858c9c;
-    font-size: 9px;
+    font-size: 10px;
 }
 
 .summary-panel {
@@ -1262,7 +1050,7 @@
     display: block;
     margin-bottom: 10px;
     color: #9fa5b4;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .payment-icons {
@@ -1277,7 +1065,7 @@
     border-radius: 4px;
     background: #1d2129;
     color: #cfd5e0;
-    font-size: 8px;
+    font-size: 10px;
     font-weight: 600;
 }
 
