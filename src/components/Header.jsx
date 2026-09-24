@@ -1,49 +1,90 @@
-import { useState } from "react";
-import { Heart, Search, ShoppingCart, User, ChevronDown, Home } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Heart,
+  Search,
+  ShoppingCart,
+  User,
+  ChevronDown,
+  Home,
+  LogOut,
+  ClipboardList,
+  ChevronRight,
+} from "lucide-react";
 import logo from "../assets/sd-computers-logo.svg";
-import { authService } from "../services/authService.js";
+import { useStore } from "../store/StoreContext.jsx";
+import { categoryService } from "../services/categoryService.js";
+import { categoryIcon } from "../constants.js";
 
 /**
- * The single site header used on every storefront page.
- * All navigation is plain URL links so a header works identically
- * across the Home, Search, Category, Product, Cart, Wishlist and
- * Profile pages.
+ * The single site header used on every storefront page. Navigation is
+ * real router links (React Router) plus a categories dropdown fetched
+ * from the backend and an account menu for signed-in users.
  */
-export default function Header({ cartCount = 0, wishlistCount = 0 }) {
-  const user = authService.getUser();
-  const userName = user?.name?.trim() || null;
-  const userInitial = userName ? userName.charAt(0).toUpperCase() : null;
+export default function Header() {
+  const navigate = useNavigate();
+  const { user, cartCount, wishlistCount, logout } = useStore();
+  const [query, setQuery] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [menuOpen, setMenuOpen] = useState(null); // "categories" | "account" | null
+  const menuRef = useRef(null);
 
-  const currentQuery =
-    new URLSearchParams(window.location.search).get("q") || "";
+  useEffect(() => {
+    let cancelled = false;
+    categoryService
+      .list()
+      .then((data) => {
+        if (!cancelled) setCategories(data);
+      })
+      .catch(() => {
+        /* header simply shows no dropdown when the backend is down */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const [query, setQuery] = useState(currentQuery);
+  // Close the dropdowns when clicking anywhere else.
+  useEffect(() => {
+    const onDocumentClick = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(null);
+      }
+    };
+    document.addEventListener("mousedown", onDocumentClick);
+    return () => document.removeEventListener("mousedown", onDocumentClick);
+  }, []);
 
   const submitSearch = (event) => {
     event.preventDefault();
     const term = query.trim();
-    const params = new URLSearchParams();
-    if (term) params.set("q", term);
-    const qs = params.toString();
-    window.location.href = qs ? `/search?${qs}` : "/search";
+    navigate(term ? `/search?q=${encodeURIComponent(term)}` : "/search");
+    setMenuOpen(null);
+  };
+
+  const userName = user?.name?.trim() || null;
+  const userInitial = userName ? userName.charAt(0).toUpperCase() : null;
+
+  const handleLogout = async () => {
+    setMenuOpen(null);
+    await logout();
+    navigate("/");
+  };
+
+  const go = (path) => () => {
+    setMenuOpen(null);
+    navigate(path);
   };
 
   return (
-    <header className="site-header">
-      <button
-        type="button"
-        className="brand"
-        onClick={() => {
-          window.location.href = "/";
-        }}
-        aria-label="SD Computers home"
-      >
+    <header className="site-header" ref={menuRef}>
+      <Link className="brand" to="/" aria-label="SD Computers home">
         <img className="brand-logo" src={logo} alt="SD Computers logo" />
         <span className="brand-text">
           <strong>SD COMPUTERS</strong>
           <small>BUILD YOUR LEGEND</small>
         </span>
-      </button>
+      </Link>
 
       <form className="header-search" onSubmit={submitSearch} role="search">
         <input
@@ -59,33 +100,57 @@ export default function Header({ cartCount = 0, wishlistCount = 0 }) {
       </form>
 
       <nav className="header-links" aria-label="Primary">
-        <button
-          type="button"
-          className="header-link home-link"
-          onClick={() => {
-            window.location.href = "/";
-          }}
-        >
+        <Link className="header-link home-link" to="/">
           <Home size={18} />
           <span>Home</span>
-        </button>
+        </Link>
 
-        <button
-          type="button"
-          className="header-link"
-          onClick={() => {
-            window.location.href = "/search";
-          }}
-        >
+        <Link className="header-link" to="/search">
           <span className="shop-all">Shop All</span>
-        </button>
+        </Link>
 
-        <button
-          type="button"
+        <div className="header-menu">
+          <button
+            type="button"
+            className={`header-link ${menuOpen === "categories" ? "active" : ""}`}
+            onClick={() =>
+              setMenuOpen((current) =>
+                current === "categories" ? null : "categories"
+              )
+            }
+            aria-expanded={menuOpen === "categories"}
+          >
+            <span>Categories</span>
+            <ChevronDown size={15} />
+          </button>
+
+          {menuOpen === "categories" && (
+            <div className="header-dropdown categories-dropdown">
+              <Link className="dropdown-all" to="/search" onClick={go("/search")}>
+                <span>All Products</span>
+                <ChevronRight size={15} />
+              </Link>
+              {categories.map((item) => {
+                const Icon = categoryIcon(item.name);
+                return (
+                  <Link
+                    key={item.id}
+                    to={`/category/${item.slug}`}
+                    onClick={go(`/category/${item.slug}`)}
+                  >
+                    <Icon size={16} />
+                    <span>{item.name}</span>
+                    {item.count > 0 && <small>{item.count}</small>}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <Link
           className="header-link"
-          onClick={() => {
-            window.location.href = "/wishlist";
-          }}
+          to="/wishlist"
           aria-label={`Wishlist, ${wishlistCount} items`}
         >
           <span className="icon-badge">
@@ -93,14 +158,11 @@ export default function Header({ cartCount = 0, wishlistCount = 0 }) {
             {wishlistCount > 0 && <b>{wishlistCount}</b>}
           </span>
           <span>Wishlist</span>
-        </button>
+        </Link>
 
-        <button
-          type="button"
+        <Link
           className="header-link"
-          onClick={() => {
-            window.location.href = "/cart";
-          }}
+          to="/cart"
           aria-label={`Cart, ${cartCount} items`}
         >
           <span className="icon-badge">
@@ -108,33 +170,47 @@ export default function Header({ cartCount = 0, wishlistCount = 0 }) {
             {cartCount > 0 && <b>{cartCount}</b>}
           </span>
           <span>Cart</span>
-        </button>
+        </Link>
 
-        {userName ? (
-          <button
-            type="button"
-            className="header-link user-link"
-            onClick={() => {
-              window.location.href = "/profile";
-            }}
-          >
-            <span className="user-avatar">{userInitial}</span>
-            <span>Hi, {userName.split(" ")[0]}</span>
-            <ChevronDown size={14} />
-          </button>
+        {user ? (
+          <div className="header-menu account-menu">
+            <button
+              type="button"
+              className={`header-link ${menuOpen === "account" ? "active" : ""}`}
+              onClick={() =>
+                setMenuOpen((current) => (current === "account" ? null : "account"))
+              }
+              aria-expanded={menuOpen === "account"}
+            >
+              <span className="user-avatar">{userInitial}</span>
+              <span className="account-label">{userName}</span>
+              <ChevronDown size={15} />
+            </button>
+
+            {menuOpen === "account" && (
+              <div className="header-dropdown account-dropdown">
+                <Link to="/profile" onClick={go("/profile")}>
+                  <User size={15} /> My Profile
+                </Link>
+                <Link to="/orders" onClick={go("/orders")}>
+                  <ClipboardList size={15} /> My Orders
+                </Link>
+                <Link to="/wishlist" onClick={go("/wishlist")}>
+                  <Heart size={15} /> Wishlist
+                </Link>
+                <button type="button" onClick={handleLogout}>
+                  <LogOut size={15} /> Logout
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
-          <button
-            type="button"
-            className="header-link user-link"
-            onClick={() => {
-              window.location.href = "/login";
-            }}
-          >
+          <Link className="header-link account-cta" to="/login">
             <span className="user-avatar">
-              <User size={16} />
+              <User size={15} />
             </span>
             <span>Login</span>
-          </button>
+          </Link>
         )}
       </nav>
     </header>

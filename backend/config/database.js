@@ -15,10 +15,10 @@ dotenv.config({ path: path.join(__dirname, "..", ".env") });
  *   DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
  *
  * No credentials are hardcoded here. The database name falls back to the
- * project database ("sd_computers") only when DB_NAME is not set.
+ * project database ("SD_Computers") only when DB_NAME is not set.
  */
 const sequelize = new Sequelize(
-  process.env.DB_NAME || "sd_computers",
+  process.env.DB_NAME || "SD_Computers",
   process.env.DB_USER,
   process.env.DB_PASSWORD,
   {
@@ -36,6 +36,10 @@ const sequelize = new Sequelize(
       charset: "utf8mb4",
       collate: "utf8mb4_unicode_ci",
       timestamps: true,
+      // Maps Sequelize's createdAt/updatedAt attributes to the
+      // created_at/updated_at columns used by backend/sql/schema.sql
+      // so sequelize.sync() and the SQL schema stay in agreement.
+      underscored: true,
     },
   }
 );

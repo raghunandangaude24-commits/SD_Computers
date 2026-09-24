@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { Heart, ShoppingCart, Box } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useStore } from "../store/StoreContext.jsx";
+import RatingStars from "./RatingStars.jsx";
 
 /**
  * The single product card used across the whole store.
  * Consumes the backend product shape:
- * { id, name, brand, category, image, price, oldPrice, discount, specifications }
+ * { id, slug, name, brand, category, image, price, oldPrice, discount,
+ *   specifications, stock, rating, reviewCount, description, facets }
  *
- * Product images come from the backend `image` field. If the path cannot
- * load (e.g. the product image file does not exist yet), a clean icon
- * placeholder is shown instead — nothing is hardcoded.
+ * The card is fully data-driven (nothing hardcoded) and navigates with
+ * real router links.
  */
 export default function ProductCard({ product }) {
   const { addToCart, toggleWishlist, isWishlisted } = useStore();
@@ -21,23 +23,26 @@ export default function ProductCard({ product }) {
   const specifications = Array.isArray(product.specifications)
     ? product.specifications
     : [];
-
-  const openProduct = () => {
-    window.location.href = `/product/${product.id}`;
-  };
+  const discountLabel =
+    product.discount != null && product.discount !== ""
+      ? `${Math.round(Number(product.discount))}% OFF`
+      : null;
+  const inStock = Number(product.stock) > 0;
 
   const add = (event) => {
+    event.preventDefault();
     event.stopPropagation();
     addToCart(product);
   };
 
   const favorite = (event) => {
+    event.preventDefault();
     event.stopPropagation();
     toggleWishlist(product);
   };
 
   return (
-    <article className="product-card" onClick={openProduct}>
+    <article className="product-card">
       <button
         type="button"
         className={`favorite ${wishlisted ? "active" : ""}`}
@@ -51,9 +56,13 @@ export default function ProductCard({ product }) {
         <Heart size={19} />
       </button>
 
-      {product.discount && <span className="discount-badge">{product.discount}</span>}
+      {discountLabel && <span className="discount-badge">{discountLabel}</span>}
 
-      <div className="product-image">
+      <Link
+        className="product-image"
+        to={`/product/${product.id}`}
+        aria-label={`View ${product.name}`}
+      >
         {!imageFailed ? (
           <img
             src={product.image}
@@ -67,15 +76,25 @@ export default function ProductCard({ product }) {
             <span>{product.category || "Product"}</span>
           </div>
         )}
-      </div>
+      </Link>
 
       <div className="product-body">
         <small className="product-category">{product.category}</small>
-        <h3>{product.name}</h3>
+        <h3>
+          <Link to={`/product/${product.id}`}>{product.name}</Link>
+        </h3>
+
+        {Number(product.rating) > 0 && (
+          <RatingStars
+            rating={product.rating}
+            count={product.reviewCount}
+            size={12}
+          />
+        )}
 
         {specifications.length > 0 && (
           <div className="product-specs">
-            {specifications.map((spec, index) => (
+            {specifications.slice(0, 3).map((spec, index) => (
               <span key={index}>
                 {index > 0 && <i>|</i>}
                 {spec}
@@ -89,10 +108,14 @@ export default function ProductCard({ product }) {
           {product.oldPrice && <del>{product.oldPrice}</del>}
         </div>
 
-        <button type="button" className="add-cart" onClick={add}>
-          <ShoppingCart size={17} />
-          <span>Add to Cart</span>
-        </button>
+        {inStock ? (
+          <button type="button" className="add-cart" onClick={add}>
+            <ShoppingCart size={17} />
+            <span>Add to Cart</span>
+          </button>
+        ) : (
+          <span className="stock-label out">Out of stock</span>
+        )}
       </div>
     </article>
   );

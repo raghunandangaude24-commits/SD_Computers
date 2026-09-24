@@ -1,23 +1,30 @@
-import "dotenv/config";
-import express from "express";
-import cors from "cors";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import dotenv from "dotenv";
+import express from "express";
+import cors from "cors";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Load .env from the backend folder no matter where the server is started.
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 import { sequelize } from "./models/index.js";
 import authRoutes from "./routes/authRoutes.js";
 import searchRoutes from "./routes/searchRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
+import brandRoutes from "./routes/brandRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import wishlistRoutes from "./routes/wishlistRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
 import {
   notFoundHandler,
   errorHandler,
 } from "./middleware/errorMiddleware.js";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// Load .env from the backend folder no matter where the server is started.
-import dotenv from "dotenv";
-dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 
@@ -40,6 +47,14 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/brands", brandRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/contact", contactRoutes);
 
 // --- 404 + centralized error handling ---
 app.use(notFoundHandler);
@@ -58,17 +73,24 @@ async function start() {
     console.log("[db] MySQL connection OK");
 
     // Non-destructive: creates missing tables only, never forces or alters.
+    // The full canonical schema (with indexes) lives in sql/schema.sql and
+    // is applied by `npm run init-db`.
     await sequelize.sync();
     console.log("[db] Sequelize models synchronized");
   } catch (err) {
     console.error("[db] Could not connect to MySQL:", err.message);
     console.error("[db] Check DB_HOST / DB_PORT / DB_USER / DB_PASSWORD / DB_NAME in backend/.env");
+    console.error("[db] Then run:  cd backend && npm run init-db");
     process.exit(1);
   }
 
   app.listen(PORT, () => {
     console.log(`[server] API listening on http://localhost:${PORT}`);
-    console.log(`[server] Allowed CORS origin: ${process.env.NODE_ENV === "production" ? clientUrl : "* (development)"}`);
+    console.log(
+      `[server] Allowed CORS origin: ${
+        process.env.NODE_ENV === "production" ? clientUrl : "* (development)"
+      }`
+    );
   });
 }
 

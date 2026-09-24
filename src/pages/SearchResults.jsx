@@ -1,49 +1,28 @@
 import { useEffect, useState } from "react";
-import {
-  ChevronDown,
-  ChevronRight,
-  LayoutGrid,
-  Cpu,
-  Monitor,
-  HardDrive,
-  BatteryCharging,
-  Fan,
-  Box,
-  X,
-  MemoryStick,
-  Keyboard,
-} from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { ChevronDown } from "lucide-react";
 
 import "../styles/SearchResults.css";
 import { searchProducts, fetchCategories } from "../services/productService.js";
 import ProductGrid from "../components/ProductGrid.jsx";
 import PageState from "../components/PageState.jsx";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
+import FilterSidebar, { MobileFilters } from "../components/FilterSidebar.jsx";
 
 const RESULTS_PER_PAGE = 12;
-
-const CATEGORY_ICONS = {
-  "Processors (CPU)": Cpu,
-  Motherboards: Box,
-  "Graphics Cards (GPU)": Monitor,
-  RAM: MemoryStick,
-  Storage: HardDrive,
-  "Power Supplies (PSU)": BatteryCharging,
-  Cooling: Fan,
-  "PC Cases": Box,
-  Monitors: Monitor,
-  Peripherals: Keyboard,
-};
 
 export default function SearchResults() {
   // Initialize from the URL (?q=..., ?category=...) so searches and
   // category links from the Home page open the matching results.
-  const searchParams = new URLSearchParams(window.location.search);
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get("q") ?? "";
   const initialCategory = searchParams.get("category") || null;
 
   const [searchTerm] = useState(initialQuery);
   const [category, setCategory] = useState(initialCategory);
   const [selectedBrands, setSelectedBrands] = useState([]);
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
   const [sort, setSort] = useState("relevance");
   const [page, setPage] = useState(1);
 
@@ -67,6 +46,8 @@ export default function SearchResults() {
       q: searchTerm,
       category: category || undefined,
       brand: selectedBrands.length > 0 ? selectedBrands : undefined,
+      price_min: priceMin || undefined,
+      price_max: priceMax || undefined,
       sort,
       page,
       limit: RESULTS_PER_PAGE,
@@ -88,7 +69,7 @@ export default function SearchResults() {
     return () => {
       cancelled = true;
     };
-  }, [searchTerm, category, selectedBrands, sort, page, retryCount]);
+  }, [searchTerm, category, selectedBrands, priceMin, priceMax, sort, page, retryCount]);
 
   // Sidebar categories come from the backend so the list never goes stale.
   useEffect(() => {
@@ -121,10 +102,19 @@ export default function SearchResults() {
     setPage(1);
   };
 
+  const onPriceChange = ({ min, max }) => {
+    setError(null);
+    setPriceMin(min);
+    setPriceMax(max);
+    setPage(1);
+  };
+
   const clearFilters = () => {
     setError(null);
     setCategory(null);
     setSelectedBrands([]);
+    setPriceMin("");
+    setPriceMax("");
     setPage(1);
   };
 
@@ -133,6 +123,13 @@ export default function SearchResults() {
     setError(null);
     setPage(nextPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const updateUrl = () => {
+    const params = new URLSearchParams();
+    if (searchTerm) params.set("q", searchTerm);
+    if (category) params.set("category", category);
+    setSearchParams(params, { replace: true });
   };
 
   let productArea;
@@ -150,7 +147,7 @@ export default function SearchResults() {
     productArea = (
       <PageState
         variant="empty"
-        title={`No products found for "${searchTerm}".`}
+        title={`No products found${searchTerm ? ` for "${searchTerm}"` : ""}.`}
         message="Try a different keyword, or clear the filters."
       />
     );
@@ -198,150 +195,95 @@ export default function SearchResults() {
     );
   }
 
-  const hasFilters = category !== null || selectedBrands.length > 0;
+  const sidebar = (
+    <FilterSidebar
+      categories={categories}
+      activeCategory={category}
+      onSelectCategory={selectCategory}
+      brands={brandFacets}
+      selectedBrands={selectedBrands}
+      onToggleBrand={toggleBrand}
+      priceMin={priceMin}
+      priceMax={priceMax}
+      onPriceChange={onPriceChange}
+      onClear={clearFilters}
+      total={pagination.total}
+      showBack
+    />
+  );
 
   return (
-    <div className="search-layout">
-      <aside className="filters-sidebar">
-        <button
-          type="button"
-          className="back-button"
-          onClick={() => {
-            window.location.href = "/";
-          }}
-        >
-          ← &nbsp; Back to Home
-        </button>
+    <div className="listing-page">
+      <div className="listing-head">
+        <Breadcrumbs
+          items={[{ label: "Home", to: "/" }, { label: "Search Results" }]}
+        />
+        <MobileFilters>{sidebar}</MobileFilters>
+      </div>
 
-        <div className="sidebar-section">
-          <h3>Categories</h3>
-          <div className="category-list">
-            <button
-              type="button"
-              className={category === null ? "category active" : "category"}
-              onClick={() => selectCategory(null)}
-            >
-              <LayoutGrid size={18} />
-              <span>All Categories</span>
-              <small className="cat-count">{pagination.total || ""}</small>
-            </button>
+      <div className="search-layout">
+        <div className="desktop-sidebar">{sidebar}</div>
 
-            {categories.map((item) => {
-              const Icon = CATEGORY_ICONS[item.name] || Box;
-              return (
-                <button
-                  type="button"
-                  key={item.name}
-                  className={
-                    category === item.name ? "category active" : "category"
-                  }
-                  onClick={() => selectCategory(item.name)}
-                >
-                  <Icon size={18} />
-                  <span>{item.name}</span>
-                  <small className="cat-count">{item.count}</small>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <main className="content">
+          <div className="title-row">
+            <div className="title-content">
+              <h2>Search Results</h2>
+              <p>
+                Showing {loading ? "…" : pagination.total}{" "}
+                {pagination.total === 1 ? "result" : "results"}
+                {searchTerm ? (
+                  <>
+                    {" "}
+                    for <strong>"{searchTerm}"</strong>
+                  </>
+                ) : (
+                  ""
+                )}
+                {category ? (
+                  <>
+                    {" "}
+                    in <strong>{category}</strong>
+                  </>
+                ) : (
+                  ""
+                )}
+              </p>
+            </div>
 
-        <div className="filter-section">
-          <h3>Price Range</h3>
-          <div className="price-slider">
-            <div className="slider-line"></div>
-            <div className="slider-dot left"></div>
-            <div className="slider-dot right"></div>
-          </div>
-          <div className="price-labels">
-            <span>₹0</span>
-            <span>₹1,50,000</span>
-          </div>
-        </div>
-
-        {brandFacets.length > 0 && (
-          <div className="filter-section">
-            <h3>Brand</h3>
-            <div className="brand-list">
-              {brandFacets.map(({ name, count }) => (
-                <label className="brand-filter" key={name}>
-                  <input
-                    type="checkbox"
-                    value={name}
-                    checked={selectedBrands.includes(name)}
-                    onChange={() => toggleBrand(name)}
-                  />
-                  <span className="custom-checkbox"></span>
-                  <span>{name}</span>
-                  <small>({count})</small>
-                </label>
-              ))}
+            <div className="sort-button sort-wrap">
+              <span>Sort by:</span>
+              <select
+                value={sort}
+                onChange={(event) => {
+                  setError(null);
+                  setSort(event.target.value);
+                  setPage(1);
+                }}
+                aria-label="Sort results"
+              >
+                <option value="relevance">Relevance</option>
+                <option value="newest">Newest</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="name_asc">Name: A to Z</option>
+                <option value="rating">Top Rated</option>
+              </select>
+              <ChevronDown size={17} className="chevron" />
             </div>
           </div>
-        )}
 
-        {hasFilters && (
-          <button type="button" className="clear-button" onClick={clearFilters}>
-            <X size={16} />
-            <span>Clear Filters</span>
+          <button
+            type="button"
+            className="url-update-btn"
+            onClick={updateUrl}
+            title="Copy the current filters into the URL"
+          >
+            Copy filters to URL
           </button>
-        )}
-      </aside>
 
-      <main className="content">
-        <div className="breadcrumb">
-          <span>Home</span>
-          <ChevronRight size={15} />
-          <span>Search Results</span>
-        </div>
-
-        <div className="title-row">
-          <div className="title-content">
-            <h2>Search Results</h2>
-            <p>
-              Showing {loading ? "…" : pagination.total}{" "}
-              {pagination.total === 1 ? "result" : "results"}
-              {searchTerm ? (
-                <>
-                  {" "}
-                  for <strong>"{searchTerm}"</strong>
-                </>
-              ) : (
-                ""
-              )}
-              {category ? (
-                <>
-                  {" "}
-                  in <strong>{category}</strong>
-                </>
-              ) : (
-                ""
-              )}
-            </p>
-          </div>
-
-          <div className="sort-button sort-wrap">
-            <span>Sort by:</span>
-            <select
-              value={sort}
-              onChange={(event) => {
-                setError(null);
-                setSort(event.target.value);
-                setPage(1);
-              }}
-              aria-label="Sort results"
-            >
-              <option value="relevance">Relevance</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="name_asc">Name: A to Z</option>
-            </select>
-            <ChevronDown size={17} className="chevron" />
-          </div>
-        </div>
-
-        {productArea}
-      </main>
+          {productArea}
+        </main>
+      </div>
     </div>
   );
 }

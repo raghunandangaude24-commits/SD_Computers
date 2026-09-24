@@ -78,3 +78,12 @@ export const apiGet = (path, options) =>
 
 export const apiPost = (path, body, options) =>
   request(path, { method: "POST", body, ...options });
+
+export const apiPut = (path, body, options) =>
+  request(path, { method: "PUT", body, ...options });
+
+export const apiPatch = (path, body, options) =>
+  request(path, { method: "PATCH", body, ...options });
+
+export const apiDelete = (path, options) =>
+  request(path, { method: "DELETE", ...options });

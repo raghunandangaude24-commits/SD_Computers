@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Mail,
   Lock,
@@ -8,10 +9,15 @@ import {
 } from "lucide-react";
 
 import "../styles/auth.css";
-import { authService } from "../services/authService.js";
 import logo from "../assets/sd-computers-logo.svg";
+import { useStore } from "../store/StoreContext.jsx";
 
 export default function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const { login, user, authReady } = useStore();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +25,14 @@ export default function Login() {
   const [error, setError] = useState(null);
 
   // "?registered=1" is set by the Register page after a successful signup.
-  const registered = new URLSearchParams(window.location.search).get("registered") === "1";
+  const registered = searchParams.get("registered") === "1";
+
+  // Already signed in? Go home (after the stored session is validated).
+  if (authReady && user) {
+    return <Navigate to="/" replace />;
+  }
+
+  const from = location.state?.from || "/";
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -34,8 +47,8 @@ export default function Login() {
 
     setLoading(true);
     try {
-      await authService.login(cleanEmail, password);
-      window.location.href = "/search";
+      await login(cleanEmail, password);
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.message || "Login failed. Please try again.");
       setLoading(false);
@@ -124,7 +137,7 @@ export default function Login() {
         <div className="auth-options">
 
           <label className="remember">
-            <input type="checkbox" />
+            <input type="checkbox" readOnly />
             <span>Remember me</span>
           </label>
 
@@ -139,7 +152,7 @@ export default function Login() {
         <button
           className="primary-button"
           type="submit"
-          disabled={loading}
+          disabled={loading || !authReady}
         >
           {loading ? "Logging in..." : "Login"}
           {!loading && <ArrowRight />}
@@ -152,10 +165,10 @@ export default function Login() {
         </div>
 
 
-        {/* SOCIAL LOGIN */}
+        {/* SOCIAL LOGIN (placeholder — auth is email + password only) */}
         <div className="social-buttons">
 
-          <button type="button">
+          <button type="button" disabled>
 
             <svg
               className="brand-icon"
@@ -184,7 +197,7 @@ export default function Login() {
           </button>
 
 
-          <button type="button">
+          <button type="button" disabled>
 
             <svg
               className="brand-icon github-icon"
@@ -200,13 +213,17 @@ export default function Login() {
 
           </button>
 
+          <small className="social-note">
+            Social sign-in is a placeholder — use your email and password.
+          </small>
+
         </div>
 
 
         {/* FOOTER */}
         <footer>
           Don't have an account?
-          <a href="/register">Register</a>
+          <Link to="/register">Register</Link>
         </footer>
 
       </form>

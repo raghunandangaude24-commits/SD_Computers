@@ -3,8 +3,7 @@ import { search, listCategories } from "../controllers/searchController.js";
 
 const router = Router();
 
-// Public search endpoint — the existing Search Results page works
-// without authentication, so search stays public.
+// Public search endpoint — the Search Results page works without login.
 router.get("/", search);
 
 // Public category list used by the Home page category tiles/sidebar.

@@ -25,6 +25,11 @@ export const authService = {
     return apiGet("/auth/me");
   },
 
+  /** POST /api/auth/logout — best-effort; the JWT is discarded client-side. */
+  async logout() {
+    return apiPost("/auth/logout");
+  },
+
   getToken,
   getUser,
   clearSession,

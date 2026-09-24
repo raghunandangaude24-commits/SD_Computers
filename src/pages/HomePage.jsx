@@ -1,42 +1,18 @@
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Cpu,
-  Monitor,
-  HardDrive,
-  BatteryCharging,
-  Fan,
-  MemoryStick,
-  Keyboard,
-} from "lucide-react";
+import { Link } from "react-router-dom";
 import { fetchCategories, searchProducts } from "../services/productService.js";
 import ProductGrid from "../components/ProductGrid.jsx";
 import PageState from "../components/PageState.jsx";
 import { useStore } from "../store/StoreContext.jsx";
+import { categoryIcon } from "../constants.js";
 
 /**
  * Home page. All product + category content comes from the backend:
- * - "Shop by Category" tiles are fetched from GET /api/search/categories
- * - "Deals of the Day" products are fetched from GET /api/search
+ * - "Shop by Category" tiles are fetched from GET /api/categories
+ * - "Deals of the Day" uses GET /api/search (newest)
+ * - "Popular Picks" uses GET /api/search?popular=1&sort=rating
  * No hardcoded product or category arrays remain.
  */
-
-const CATEGORY_ICONS = {
-  "Processors (CPU)": Cpu,
-  Motherboards: Box,
-  "Graphics Cards (GPU)": Monitor,
-  RAM: MemoryStick,
-  Storage: HardDrive,
-  "Power Supplies (PSU)": BatteryCharging,
-  Cooling: Fan,
-  "PC Cases": Box,
-  Monitors: Monitor,
-  Peripherals: Keyboard,
-};
-
-function categoryIcon(name) {
-  return CATEGORY_ICONS[name] || Box;
-}
 
 function Benefits() {
   return (
@@ -96,9 +72,12 @@ export default function HomePage() {
 
   const [categories, setCategories] = useState([]);
   const [deals, setDeals] = useState([]);
+  const [popular, setPopular] = useState([]);
   const [categoryError, setCategoryError] = useState(false);
   const [dealsError, setDealsError] = useState(false);
+  const [popularError, setPopularError] = useState(false);
   const [dealsLoading, setDealsLoading] = useState(true);
+  const [popularLoading, setPopularLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -125,6 +104,20 @@ export default function HomePage() {
         }
       });
 
+    searchProducts({ limit: 8, sort: "rating", popular: true })
+      .then((data) => {
+        if (!cancelled) {
+          setPopular(data.results ?? []);
+          setPopularLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPopularError(true);
+          setPopularLoading(false);
+        }
+      });
+
     return () => {
       cancelled = true;
     };
@@ -138,14 +131,6 @@ export default function HomePage() {
     );
   };
 
-  const openCategory = (name) => {
-    window.location.assign(`/category?name=${encodeURIComponent(name)}`);
-  };
-
-  const openDeals = () => {
-    window.location.assign("/search");
-  };
-
   return (
     <div className="home-layout">
       <aside className="sidebar">
@@ -155,14 +140,10 @@ export default function HomePage() {
         )}
         {!categoryError &&
           categories.map((category) => (
-            <button
-              key={category.name}
-              onClick={() => openCategory(category.name)}
-              type="button"
-            >
+            <Link key={category.id} to={`/category/${category.slug}`}>
               <span>◌</span>
               {category.name}
-            </button>
+            </Link>
           ))}
         <div className="build-box">
           <strong>
@@ -171,11 +152,9 @@ export default function HomePage() {
           <small>
             Not sure what fits best?
             <br />
-            Use our PC Builder
+            Browse our full catalog
           </small>
-          <button onClick={openDeals} type="button">
-            Start Building&nbsp; →
-          </button>
+          <Link to="/search">Start Building&nbsp; →</Link>
           <div className="mini-case">▥</div>
         </div>
       </aside>
@@ -194,9 +173,7 @@ export default function HomePage() {
               <br />
               creators and professionals.
             </p>
-            <button onClick={openDeals} type="button">
-              Shop Now&nbsp; →
-            </button>
+            <Link to="/search">Shop Now&nbsp; →</Link>
           </div>
           <div className="hero-pc">▦</div>
           <div className="dots">● ● ● ●</div>
@@ -207,13 +184,9 @@ export default function HomePage() {
         <section className="section">
           <div className="section-head">
             <h2>SHOP BY CATEGORY</h2>
-            <button
-              type="button"
-              className="section-link"
-              onClick={() => window.location.assign("/search")}
-            >
+            <Link to="/search" className="section-link">
               View All&nbsp; →
-            </button>
+            </Link>
           </div>
 
           {categoryError ? (
@@ -227,11 +200,10 @@ export default function HomePage() {
               {categories.map((category) => {
                 const Icon = categoryIcon(category.name);
                 return (
-                  <button
-                    key={category.name}
+                  <Link
+                    key={category.id}
                     className="category-tile"
-                    onClick={() => openCategory(category.name)}
-                    type="button"
+                    to={`/category/${category.slug}`}
                   >
                     <span className="category-icon">
                       <Icon size={22} />
@@ -242,7 +214,7 @@ export default function HomePage() {
                         ? `${category.count} product${category.count === 1 ? "" : "s"}`
                         : "Browse"}
                     </small>
-                  </button>
+                  </Link>
                 );
               })}
             </div>
@@ -252,9 +224,9 @@ export default function HomePage() {
         <section className="section deals">
           <div className="section-head">
             <h2>DEALS OF THE DAY</h2>
-            <button type="button" className="section-link" onClick={openDeals}>
+            <Link to="/search" className="section-link">
               View All Deals&nbsp; →
-            </button>
+            </Link>
           </div>
 
           {dealsLoading ? (
@@ -275,6 +247,33 @@ export default function HomePage() {
             <ProductGrid products={deals} />
           )}
         </section>
+
+        <section className="section popular">
+          <div className="section-head">
+            <h2>POPULAR PICKS</h2>
+            <Link to="/search" className="section-link">
+              See More&nbsp; →
+            </Link>
+          </div>
+
+          {popularLoading ? (
+            <PageState variant="loading" />
+          ) : popularError ? (
+            <PageState
+              variant="error"
+              title="Unable to load products."
+              message="Make sure the backend is running."
+            />
+          ) : popular.length === 0 ? (
+            <PageState
+              variant="empty"
+              title="No products found."
+              message="Check back soon for popular picks."
+            />
+          ) : (
+            <ProductGrid products={popular} />
+          )}
+        </section>
       </main>
 
       <aside className="right-rail">
@@ -286,9 +285,7 @@ export default function HomePage() {
             build your dream PC
           </small>
           <div>▥</div>
-          <button onClick={openDeals} type="button">
-            Start Building&nbsp; →
-          </button>
+          <Link to="/search">Start Building&nbsp; →</Link>
         </div>
         <div className="newsletter">
           <strong>NEWSLETTER</strong>
@@ -317,14 +314,7 @@ export default function HomePage() {
               ? `${cartCount} item${cartCount === 1 ? "" : "s"} ready for checkout`
               : "Your cart is empty"}
           </small>
-          <button
-            onClick={() => {
-              window.location.assign("/cart");
-            }}
-            type="button"
-          >
-            View Cart&nbsp; →
-          </button>
+          <Link to="/cart">View Cart&nbsp; →</Link>
         </div>
       </aside>
     </div>

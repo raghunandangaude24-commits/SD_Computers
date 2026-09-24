@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d0b15"/>
+      <stop offset="0.5" stop-color="#171326"/>
+      <stop offset="1" stop-color="#0d0b15"/>
+    </linearGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c29dd"/>
+      <stop offset="1" stop-color="#a84dff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.62">
+      <stop offset="0" stop-color="#7c29dd" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#7c29dd" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>
+  <rect width="600" height="600" fill="url(#glow)"/>
+  <g stroke="rgba(255,255,255,0.045)" stroke-width="1"><line x1="60" y1="0" x2="60" y2="600" /><line x1="120" y1="0" x2="120" y2="600" /><line x1="180" y1="0" x2="180" y2="600" /><line x1="240" y1="0" x2="240" y2="600" /><line x1="300" y1="0" x2="300" y2="600" /><line x1="360" y1="0" x2="360" y2="600" /><line x1="420" y1="0" x2="420" y2="600" /><line x1="480" y1="0" x2="480" y2="600" /><line x1="540" y1="0" x2="540" y2="600" /><line x1="0" y1="60" x2="600" y2="60" /><line x1="0" y1="120" x2="600" y2="120" /><line x1="0" y1="180" x2="600" y2="180" /><line x1="0" y1="240" x2="600" y2="240" /><line x1="0" y1="300" x2="600" y2="300" /><line x1="0" y1="360" x2="600" y2="360" /><line x1="0" y1="420" x2="600" y2="420" /><line x1="0" y1="480" x2="600" y2="480" /><line x1="0" y1="540" x2="600" y2="540" /></g>
+  <g transform="translate(300 300)"><circle cx="0" cy="0" r="88" fill="none" stroke="url(#g)" stroke-width="10" stroke-width="11"/>
+    <circle cx="0" cy="0" r="58" fill="none" stroke="#e9e5f6" stroke-width="5" stroke-width="4"/>
+    <circle cx="0" cy="0" r="16" fill="url(#g)"/>
+    
+      <path d="M 0 -58 Q 30 -92 58 -58" transform="rotate(0)" fill="none" stroke="#e9e5f6" stroke-width="5" stroke-width="6"/>
+    
+      <path d="M 0 -58 Q 30 -92 58 -58" transform="rotate(51.4)" fill="none" stroke="#e9e5f6" stroke-width="5" stroke-width="6"/>
+    
+      <path d="M 0 -58 Q 30 -92 58 -58" transform="rotate(102.8)" fill="none" stroke="#e9e5f6" stroke-width="5" stroke-width="6"/>
+    
+      <path d="M 0 -58 Q 30 -92 58 -58" transform="rotate(154.2)" fill="none" stroke="#e9e5f6" stroke-width="5" stroke-width="6"/>
+    
+      <path d="M 0 -58 Q 30 -92 58 -58" transform="rotate(205.7)" fill="none" stroke="#e9e5f6" stroke-width="5" stroke-width="6"/>
+    
+      <path d="M 0 -58 Q 30 -92 58 -58" transform="rotate(257.1)" fill="none" stroke="#e9e5f6" stroke-width="5" stroke-width="6"/>
+    
+      <path d="M 0 -58 Q 30 -92 58 -58" transform="rotate(308.5)" fill="none" stroke="#e9e5f6" stroke-width="5" stroke-width="6"/>
+    
+    <rect x="-30" y="88" width="60" height="34" rx="8" fill="url(#g)"/>
+    <line x1="0" y1="122" x2="0" y2="142" fill="none" stroke="url(#g)" stroke-width="10" stroke-width="8"/></g>
+</svg>

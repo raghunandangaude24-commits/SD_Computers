@@ -3,8 +3,8 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 
 /**
- * Product categories (e.g. "Graphics Cards (GPU)").
- * createdAt / updatedAt are managed automatically by Sequelize timestamps.
+ * Product categories (e.g. "Graphics Cards (GPU)") with slugs for
+ * /category/:slug routing, marketing copy and tile images.
  */
 const Category = sequelize.define(
   "Category",
@@ -18,6 +18,20 @@ const Category = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,
+    },
+    slug: {
+      type: DataTypes.STRING(120),
+      allowNull: false,
+      unique: true,
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    image: {
+      type: DataTypes.STRING(500),
+      allowNull: false,
+      defaultValue: "",
     },
   },
   {

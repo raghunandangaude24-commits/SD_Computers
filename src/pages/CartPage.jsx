@@ -1,15 +1,16 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Trash2, ArrowRight } from "lucide-react";
 import { useStore } from "../store/StoreContext.jsx";
 import PageState from "../components/PageState.jsx";
 
 /**
- * Cart page. Items come from the cart store (localStorage snapshots of
- * backend products) — no hardcoded products. If the cart is empty a
- * unified empty state is shown.
+ * Cart page. Items come from the store (server cart for signed-in users,
+ * localStorage for guests) — no hardcoded products. Checkout only ever
+ * charges what the order summary shows (COD).
  */
 
-const couponFeatures = [
+const checkoutFeatures = [
   { icon: "✔", title: "Secure Checkout", text: "Your data is safe with us" },
   { icon: "▣", title: "Fast Delivery", text: "Quick & reliable shipping" },
   { icon: "◒", title: "24/7 Support", text: "We're here to help" },
@@ -20,13 +21,11 @@ function parseINR(value) {
 }
 
 export default function CartPage() {
+  const navigate = useNavigate();
   const { cartItems, removeFromCart, updateQuantity } = useStore();
   const [selectedItems, setSelectedItems] = useState(
     () => new Set(cartItems.map((item) => item.id))
   );
-  const [coupon, setCoupon] = useState("");
-  const [couponMessage, setCouponMessage] = useState("");
-  const [couponDiscount, setCouponDiscount] = useState(0);
   const [checkoutMessage, setCheckoutMessage] = useState("");
 
   const items = cartItems;
@@ -35,20 +34,23 @@ export default function CartPage() {
     (sum, item) => sum + parseINR(item.price) * item.qty,
     0
   );
-  const discount = Math.min(5000 + couponDiscount, subtotal);
-  const total = subtotal - discount;
+  const total = subtotal;
   const allSelected = items.length > 0 && selectedItems.size === items.length;
 
   if (items.length === 0) {
     return (
-      <PageState
-        variant="empty"
-        title="Your cart is empty."
-        message="Browse our catalog and add products to your cart."
-        onRetry={undefined}
-      >
-        {}
-      </PageState>
+      <div className="listing-page">
+        <PageState
+          variant="empty"
+          title="Your cart is empty."
+          message="Browse our catalog and add something great to your build."
+        />
+        <div className="profile-actions">
+          <Link className="btn btn-primary" to="/search">
+            Continue Shopping
+          </Link>
+        </div>
+      </div>
     );
   }
 
@@ -67,24 +69,17 @@ export default function CartPage() {
     setCheckoutMessage("");
   };
 
-  const applyCoupon = () => {
-    if (coupon.trim().toUpperCase() === "SAVE10") {
-      setCouponDiscount(Math.round(subtotal * 0.1));
-      setCouponMessage("Coupon applied: 10% extra discount");
-    } else {
-      setCouponDiscount(0);
-      setCouponMessage("Try coupon code SAVE10");
-    }
-  };
-
   const proceedToCheckout = () => {
     if (!selected.length) {
       setCheckoutMessage("Select at least one item to continue");
       return;
     }
-    setCheckoutMessage(
-      `Ready for checkout: ${selected.length} item${selected.length === 1 ? "" : "s"}`
+    // Carry the chosen items to the Checkout page.
+    sessionStorage.setItem(
+      "sd_checkout_ids",
+      JSON.stringify(selected.map((item) => item.id))
     );
+    navigate("/checkout");
   };
 
   return (
@@ -180,27 +175,8 @@ export default function CartPage() {
           ))}
 
           <div className="coupon-box">
-            <div className="coupon-head">
-              <h3>Coupon Code</h3>
-              <p>Have a coupon? Apply it here to get a discount.</p>
-            </div>
-
-            <div className="coupon-row">
-              <input
-                value={coupon}
-                onChange={(event) => setCoupon(event.target.value)}
-                type="text"
-                placeholder="Enter coupon code"
-                aria-label="Coupon code"
-              />
-              <button onClick={applyCoupon} type="button">
-                Apply
-              </button>
-            </div>
-            {couponMessage && <p className="cart-feedback">{couponMessage}</p>}
-
             <div className="feature-row">
-              {couponFeatures.map((feature) => (
+              {checkoutFeatures.map((feature) => (
                 <div className="feature-item" key={feature.title}>
                   <div className="feature-icon">{feature.icon}</div>
                   <div>
@@ -229,10 +205,6 @@ export default function CartPage() {
             <span>Delivery Charges</span>
             <strong className="free">FREE</strong>
           </div>
-          <div className="summary-row">
-            <span>Discount</span>
-            <strong className="discount">- ₹{discount.toLocaleString("en-IN")}</strong>
-          </div>
           <div className="summary-row total-row">
             <span>Total</span>
             <strong>₹{total.toLocaleString("en-IN")}</strong>
@@ -251,13 +223,16 @@ export default function CartPage() {
           )}
 
           <div className="payment-row">
-            <span>100% Secure Payments</span>
+            <span>Cash on Delivery accepted</span>
             <div className="payment-icons">
-              {["VISA", "MasterCard", "G Pay", "PayPal"].map((method) => (
+              {["COD", "UPI (soon)", "Cards (soon)"].map((method) => (
                 <button
                   key={method}
                   type="button"
-                  onClick={() => setCheckoutMessage(`${method} selected for payment`)}
+                  disabled={method.includes("soon")}
+                  onClick={() =>
+                    setCheckoutMessage("You will pay by cash on delivery")
+                  }
                 >
                   {method}
                 </button>
@@ -268,14 +243,7 @@ export default function CartPage() {
       </div>
 
       <div className="back-home-row">
-        <button
-          type="button"
-          onClick={() => {
-            window.location.href = "/";
-          }}
-        >
-          Continue Shopping →
-        </button>
+        <Link to="/search">Continue Shopping →</Link>
       </div>
     </div>
   );

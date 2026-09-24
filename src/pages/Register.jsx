@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
   User,
   Mail,
@@ -10,12 +11,15 @@ import {
 } from "lucide-react";
 
 import "../styles/auth.css";
-import { authService } from "../services/authService.js";
 import logo from "../assets/sd-computers-logo.svg";
+import { useStore } from "../store/StoreContext.jsx";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Register() {
+  const navigate = useNavigate();
+  const { register, user, authReady } = useStore();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneCode, setPhoneCode] = useState("+91");
@@ -28,6 +32,10 @@ export default function Register() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const redirectTimer = useRef(null);
+
+  if (authReady && user) {
+    return <Navigate to="/" replace />;
+  }
 
   const validate = () => {
     const cleanName = name.trim();
@@ -57,7 +65,7 @@ export default function Register() {
 
     setLoading(true);
     try {
-      await authService.register({
+      await register({
         name: name.trim(),
         email: email.trim(),
         phone: `${phoneCode}${phone.replace(/\D/g, "")}`,
@@ -66,7 +74,7 @@ export default function Register() {
 
       setSuccess("Account created successfully!");
       redirectTimer.current = setTimeout(() => {
-        window.location.href = "/login?registered=1";
+        navigate("/login?registered=1", { replace: true });
       }, 1200);
     } catch (err) {
       setError(err.message || "Registration failed. Please try again.");
@@ -226,17 +234,14 @@ export default function Register() {
           <input
             type="checkbox"
             required
+            defaultChecked
           />
 
           <span>
             I agree to the{" "}
-            <a href="#terms">
-              Terms & Conditions
-            </a>{" "}
+            <Link to="/terms">Terms &amp; Conditions</Link>{" "}
             and{" "}
-            <a href="#privacy">
-              Privacy Policy
-            </a>
+            <Link to="/privacy">Privacy Policy</Link>
           </span>
 
         </label>
@@ -246,7 +251,7 @@ export default function Register() {
         <button
           className="primary-button"
           type="submit"
-          disabled={loading}
+          disabled={loading || !authReady}
         >
           {loading ? "Creating Account..." : "Create Account"}
           {!loading && <ArrowRight />}
@@ -256,7 +261,7 @@ export default function Register() {
         {/* FOOTER */}
         <footer>
           Already have an account?
-          <a href="/login">Login</a>
+          <Link to="/login">Login</Link>
         </footer>
 
       </form>

@@ -3,8 +3,8 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 
 /**
- * Registered users of the store.
- * createdAt / updatedAt are managed automatically by Sequelize timestamps.
+ * Registered users of the store. Created_at / updated_at are managed by
+ * Sequelize timestamps (underscored → created_at / updated_at columns).
  */
 const User = sequelize.define(
   "User",
@@ -30,6 +30,11 @@ const User = sequelize.define(
     password: {
       type: DataTypes.STRING(255),
       allowNull: false,
+    },
+    role: {
+      type: DataTypes.ENUM("customer", "admin"),
+      allowNull: false,
+      defaultValue: "customer",
     },
   },
   {

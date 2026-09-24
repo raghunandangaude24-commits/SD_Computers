@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d0b15"/>
+      <stop offset="0.5" stop-color="#171326"/>
+      <stop offset="1" stop-color="#0d0b15"/>
+    </linearGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c29dd"/>
+      <stop offset="1" stop-color="#a84dff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.62">
+      <stop offset="0" stop-color="#7c29dd" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#7c29dd" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>
+  <rect width="600" height="600" fill="url(#glow)"/>
+  <g stroke="rgba(255,255,255,0.045)" stroke-width="1"><line x1="60" y1="0" x2="60" y2="600" /><line x1="120" y1="0" x2="120" y2="600" /><line x1="180" y1="0" x2="180" y2="600" /><line x1="240" y1="0" x2="240" y2="600" /><line x1="300" y1="0" x2="300" y2="600" /><line x1="360" y1="0" x2="360" y2="600" /><line x1="420" y1="0" x2="420" y2="600" /><line x1="480" y1="0" x2="480" y2="600" /><line x1="540" y1="0" x2="540" y2="600" /><line x1="0" y1="60" x2="600" y2="60" /><line x1="0" y1="120" x2="600" y2="120" /><line x1="0" y1="180" x2="600" y2="180" /><line x1="0" y1="240" x2="600" y2="240" /><line x1="0" y1="300" x2="600" y2="300" /><line x1="0" y1="360" x2="600" y2="360" /><line x1="0" y1="420" x2="600" y2="420" /><line x1="0" y1="480" x2="600" y2="480" /><line x1="0" y1="540" x2="600" y2="540" /></g>
+  <g transform="translate(300 300)"><rect x="-130" y="-92" width="260" height="164" rx="14" fill="none" stroke="url(#g)" stroke-width="10"/>
+    <rect x="-118" y="-80" width="236" height="140" rx="10" fill="url(#g)" opacity="0.12"/>
+    <rect x="-118" y="-80" width="236" height="140" rx="10" fill="none" stroke="#e9e5f6" stroke-width="5" stroke-width="3"/>
+    <path d="M 0 72 L 0 118" fill="none" stroke="url(#g)" stroke-width="10" stroke-width="9"/>
+    <path d="M -58 118 L 58 118" fill="none" stroke="url(#g)" stroke-width="10" stroke-width="9"/>
+    <path d="M -58 118 Q 0 132 58 118" fill="none" stroke="url(#g)" stroke-width="10" stroke-width="9"/>
+    <line x1="-84" y1="-44" x2="84" y2="-44" stroke="#e9e5f6" stroke-width="6" stroke-linecap="round"/>
+    <line x1="-84" y1="-18" x2="60" y2="-18" stroke="#7c29dd" stroke-width="6" stroke-linecap="round" opacity="0.85"/></g>
+</svg>
