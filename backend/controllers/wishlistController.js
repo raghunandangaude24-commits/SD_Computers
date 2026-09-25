@@ -27,7 +27,7 @@ async function fetchWishlistForUser(userId) {
   const [rows] = await pool.query(
     `SELECT p.id, p.slug, p.name, p.brand, p.category, p.price, p.old_price,
             p.discount, p.image, p.description, p.specifications, p.facets,
-            p.stock, p.rating, p.review_count, p.featured, p.popular
+            p.details, p.stock, p.rating, p.review_count, p.featured, p.popular
      FROM wishlist_items wi
      JOIN products p ON p.id = wi.product_id
      WHERE wi.wishlist_id = ?

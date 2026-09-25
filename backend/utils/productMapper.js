@@ -1,4 +1,5 @@
 import { formatINR } from "./format.js";
+import { parseSpecifications, buildProductDetails } from "./productDetails.js";
 
 /**
  * Converts a raw `products` table row into the exact JSON shape the
@@ -16,19 +17,11 @@ function parseJson(value, fallback) {
   }
 }
 
-function parseSpecifications(value) {
-  const parsed = parseJson(value, null);
-  if (Array.isArray(parsed)) return parsed;
-  if (parsed && typeof parsed === "object") {
-    return Object.entries(parsed).map(([k, v]) => `${k}: ${v}`);
-  }
-  if (value && typeof value === "string") {
-    return value
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-  }
-  return [];
+/** Stored `details` column — rebuilt from the row when it is missing
+ *  (rows written before the column existed, or by an older admin form). */
+function detailRows(row) {
+  const stored = parseJson(row.details, null);
+  return Array.isArray(stored) && stored.length > 0 ? stored : buildProductDetails(row);
 }
 
 /**
@@ -55,6 +48,9 @@ export function toProductJson(row) {
     discount: normalizeDiscount(row.discount),
     specifications: parseSpecifications(row.specifications),
     facets: parseJson(row.facets, null),
+    // Structured spec table for the detail page (cores, threads, GHz,
+    // DDR generation, MHz ...) — see detailRows() above.
+    details: detailRows(row),
     description: row.description ?? "",
     stock: Number(row.stock ?? 0),
     rating: Number(row.rating ?? 0),

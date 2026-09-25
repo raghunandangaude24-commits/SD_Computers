@@ -11,7 +11,7 @@ import {
 
 /** Full product columns JOINed with cart item quantity. */
 const CART_SELECT = `p.id, p.slug, p.name, p.brand, p.category, p.price, p.old_price,
-  p.discount, p.image, p.description, p.specifications, p.facets, p.stock,
+  p.discount, p.image, p.description, p.specifications, p.facets, p.details, p.stock,
   p.rating, p.review_count, p.featured, p.popular, ci.quantity`;
 
 async function ensureCart(userId, db = pool) {

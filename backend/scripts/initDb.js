@@ -12,6 +12,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFileSync } from "node:fs";
 import dotenv from "dotenv";
+import { buildProductDetails } from "../utils/productDetails.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
@@ -83,6 +84,7 @@ async function migrateLegacySchema(connection) {
   await ensureColumn(connection, "products", "slug", "VARCHAR(300) NOT NULL DEFAULT ''");
   await ensureColumn(connection, "products", "description", "TEXT NULL");
   await ensureColumn(connection, "products", "facets", "JSON NULL");
+  await ensureColumn(connection, "products", "details", "JSON NULL");
   await ensureColumn(connection, "products", "stock", "INT NOT NULL DEFAULT 10");
   await ensureColumn(connection, "products", "rating", "DECIMAL(3,2) NOT NULL DEFAULT 0.00");
   await ensureColumn(connection, "products", "review_count", "INT NOT NULL DEFAULT 0");
@@ -261,15 +263,38 @@ async function init() {
   });
 
   try {
+    // The details column must exist before the catalog is seeded and
+    // backfilled (schema.sql creates it on a fresh database; this is the
+    // safety net for databases created by an older schema.sql).
+    await ensureColumn(connectionB, "products", "details", "JSON NULL");
+
     // 3. Seed catalog (INSERT IGNORE — safe to re-run).
     const seed = readFileSync(path.join(__dirname, "..", "sql", "seed.sql"), "utf8");
     await connectionB.query(seed);
     console.log("[db] catalog seeded (categories, brands, products)");
 
-    // 4. Admin account.
+    // 4. Product detail tables (cores/threads/GHz, DDR generation + MHz,
+    //    VRAM, panel specs ...) — computed from each row's own data and
+    //    only ever written when the column is still NULL, so curated
+    //    values are never overwritten. Idempotent by construction.
+    const [pending] = await connectionB.query(
+      `SELECT id, name, category, description, specifications, facets
+         FROM products WHERE details IS NULL`
+    );
+    for (const row of pending) {
+      await connectionB.query("UPDATE products SET details = ? WHERE id = ?", [
+        JSON.stringify(buildProductDetails(row)),
+        row.id,
+      ]);
+    }
+    if (pending.length > 0) {
+      console.log(`  [seed] product details built for ${pending.length} product(s)`);
+    }
+
+    // 5. Admin account.
     await seedAdmin(connectionB);
 
-    // 5. Summary.
+    // 6. Summary.
     const [productCount] = await connectionB.query("SELECT COUNT(*) AS n FROM products");
     const [categoryCount] = await connectionB.query("SELECT COUNT(*) AS n FROM categories");
     const [brandCount] = await connectionB.query("SELECT COUNT(*) AS n FROM brands");

@@ -23,7 +23,7 @@ export const SORT_MAP = {
 
 /** Columns selected for every product row (must satisfy toProductJson). */
 export const PRODUCT_COLUMNS = `p.id, p.slug, p.name, p.brand, p.category, p.price,
-  p.old_price, p.discount, p.image, p.description, p.specifications, p.facets,
+  p.old_price, p.discount, p.image, p.description, p.specifications, p.facets, p.details,
   p.stock, p.rating, p.review_count, p.featured, p.popular`;
 
 /**
@@ -81,6 +81,82 @@ function parsePositiveInt(value, fallback) {
 }
 
 /**
+ * Split a user query into searchable words: lower-cased, de-duplicated,
+ * very short fragments dropped (a single letter matches nearly every row)
+ * and capped so a pasted paragraph cannot build unbounded SQL.
+ */
+function tokenizeQuery(q) {
+  const tokens = String(q ?? "")
+    .toLowerCase()
+    .split(/[^a-z0-9.]+/)
+    .filter((token) => token.length >= 2);
+  return [...new Set(tokens)].slice(0, 8);
+}
+
+/**
+ * The words actually matched against the catalog. Falls back to the raw
+ * phrase when tokenizing removes everything (e.g. a 1-character query).
+ */
+function queryTerms(q) {
+  const tokens = tokenizeQuery(q);
+  if (tokens.length > 0) return tokens;
+  const raw = String(q ?? "").trim().toLowerCase();
+  return raw ? [raw] : [];
+}
+
+/** Escape LIKE metacharacters so user input is matched literally. */
+function escapeLike(value) {
+  return String(value).replace(/[\\%_]/g, (char) => `\\${char}`);
+}
+
+/** A single `%term%` placeholder-bound pattern. */
+function likePattern(term) {
+  return `%${escapeLike(term)}%`;
+}
+
+/**
+ * WHERE fragment for a tokenized query: every word (AND) or any word
+ * (OR) must appear in the name, brand, category, specs or description.
+ * Matching per word instead of matching the whole phrase is what makes
+ * queries such as "ssd 1tb" or "rtx graphics" return real results.
+ * Returns { sql, args } so the caller can bind parameters in order.
+ */
+function searchCondition(terms, matchAll) {
+  const perTerm = terms.map(
+    () =>
+      "(LOWER(p.name) LIKE ? OR LOWER(p.brand) LIKE ? OR LOWER(p.category) LIKE ? OR LOWER(p.specifications) LIKE ? OR LOWER(p.description) LIKE ?)"
+  );
+
+  return {
+    sql: `(${perTerm.join(matchAll ? " AND " : " OR ")})`,
+    args: terms.flatMap((term) => {
+      const like = likePattern(term);
+      return [like, like, like, like, like];
+    }),
+  };
+}
+
+/**
+ * Relevance score expression: name hits outrank brand hits, which outrank
+ * category, specs and description. Products matching more words therefore
+ * always sort before loosely related ones. Returns { expression, args }.
+ */
+function relevanceExpression(terms) {
+  const args = [];
+  const perTerm = terms.map((term) => {
+    const like = likePattern(term);
+    args.push(like, like, like, like, like);
+    return `(CASE WHEN LOWER(p.name) LIKE ? THEN 8 ELSE 0 END
+      + CASE WHEN LOWER(p.brand) LIKE ? THEN 5 ELSE 0 END
+      + CASE WHEN LOWER(p.category) LIKE ? THEN 4 ELSE 0 END
+      + CASE WHEN LOWER(p.specifications) LIKE ? THEN 3 ELSE 0 END
+      + CASE WHEN LOWER(p.description) LIKE ? THEN 1 ELSE 0 END)`;
+  });
+
+  return { expression: perTerm.join(" + "), args };
+}
+
+/**
  * Run a product query and return { rows, pagination, brands }.
  *
  * @param {Object} params
@@ -98,6 +174,9 @@ function parsePositiveInt(value, fallback) {
  * @param {string} [params.sort]          whitelisted sort key
  * @param {number} [params.page]          1-based page number
  * @param {number} [params.limit]         page size (capped at 50)
+ * @param {boolean} [params.matchAll]     require every query word (default true);
+ *                                        automatically relaxed to "any word"
+ *                                        when a strict match would return nothing
  */
 export async function queryProducts(params = {}) {
   const {
@@ -113,6 +192,7 @@ export async function queryProducts(params = {}) {
     exclude,
     facets = {},
     sort = "relevance",
+    matchAll = true,
   } = params;
 
   const page = parsePositiveInt(params.page, 1);
@@ -124,12 +204,12 @@ export async function queryProducts(params = {}) {
   const base = [];
   const baseArgs = [];
 
-  if (q) {
-    const like = `%${q}%`;
-    base.push(
-      "(p.name LIKE ? OR p.brand LIKE ? OR p.category LIKE ? OR p.specifications LIKE ? OR p.description LIKE ?)"
-    );
-    baseArgs.push(like, like, like, like, like);
+  const terms = q ? queryTerms(q) : [];
+
+  if (terms.length > 0) {
+    const condition = searchCondition(terms, matchAll);
+    base.push(condition.sql);
+    baseArgs.push(...condition.args);
   }
 
   if (category) {
@@ -186,7 +266,14 @@ export async function queryProducts(params = {}) {
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const baseWhere = base.length > 0 ? `WHERE ${base.join(" AND ")}` : "";
-  const orderBy = SORT_MAP[sort] ?? SORT_MAP.relevance;
+
+  let orderBy = SORT_MAP[sort] ?? SORT_MAP.relevance;
+  let relevanceArgs = [];
+  if (sort === "relevance" && terms.length > 0) {
+    const relevance = relevanceExpression(terms);
+    orderBy = `${relevance.expression} DESC, p.rating DESC, p.review_count DESC, p.id ASC`;
+    relevanceArgs = relevance.args;
+  }
 
   const [countRows] = await pool.query(
     `SELECT COUNT(*) AS total FROM products p ${where}`,
@@ -195,13 +282,21 @@ export async function queryProducts(params = {}) {
   const total = Number(countRows[0].total);
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
+  // "ssd 1tb" matches, but "gaming keyboard" may not — relax the query to
+  // "any of these words" instead of showing an empty result set. The
+  // relevance ordering above keeps the closest matches on top, and the
+  // flag guard keeps this from recursing.
+  if (total === 0 && matchAll && terms.length > 1) {
+    return queryProducts({ ...params, matchAll: false });
+  }
+
   const [rows] = await pool.query(
     `SELECT ${PRODUCT_COLUMNS}
      FROM products p
      ${where}
      ORDER BY ${orderBy}
      LIMIT ? OFFSET ?`,
-    [...args, limit, offset]
+    [...args, ...relevanceArgs, limit, offset]
   );
 
   const [brandRows] = await pool.query(

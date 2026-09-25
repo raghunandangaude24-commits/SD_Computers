@@ -70,6 +70,12 @@ const Product = sequelize.define(
       type: DataTypes.JSON,
       allowNull: true,
     },
+    // Ordered { label, value } spec rows for the detail page
+    // (JSON column — built per category by utils/productDetails.js).
+    details: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
     stock: {
       type: DataTypes.INTEGER,
       allowNull: false,

@@ -64,7 +64,9 @@ CREATE TABLE IF NOT EXISTS brands (
 -- brand / category are plain string columns (kept from the first
 -- schema for the search/mapper pipeline). specifications is a JSON
 -- array string; facets is a real JSON object of structured filter
--- keys (chipset, socket, dimm, capacity, storage_type, vram ...).
+-- keys (chipset, socket, dimm, capacity, storage_type, vram ...) and
+-- details is an ordered JSON array of { label, value } spec rows built
+-- per category (CPU cores/threads/GHz, RAM DDR generation + MHz, ...).
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS products (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -79,6 +81,7 @@ CREATE TABLE IF NOT EXISTS products (
   description TEXT NULL,
   specifications TEXT NULL,
   facets JSON NULL,
+  details JSON NULL,
   stock INT NOT NULL DEFAULT 10,
   rating DECIMAL(3, 2) NOT NULL DEFAULT 0.00,
   review_count INT NOT NULL DEFAULT 0,

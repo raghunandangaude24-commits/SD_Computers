@@ -1,6 +1,7 @@
 import pool from "../config/db.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { toProductJson } from "../utils/productMapper.js";
+import { buildProductDetails } from "../utils/productDetails.js";
 import {
   queryProducts,
   parseBrands,
@@ -10,7 +11,8 @@ import { validateSearchParams, isValidId, cleanString } from "../utils/validatio
 
 /** Columns selected whenever a single product row is returned. */
 const PRODUCT_SELECT = `id, slug, name, brand, category, price, old_price, discount,
-  image, description, specifications, facets, stock, rating, review_count, featured, popular`;
+  image, description, specifications, facets, details, stock, rating, review_count,
+  featured, popular`;
 
 function slugify(text) {
   return cleanString(text)
@@ -167,6 +169,11 @@ function validateProductInput(body = {}) {
           : null,
   };
 
+  // Structured spec table for the detail page (cores / threads / GHz,
+  // DDR generation and MHz, VRAM ...) — rebuilt on every write so it
+  // always matches the specs and facets that were just saved.
+  data.details = JSON.stringify(buildProductDetails(data));
+
   return { errors, data };
 }
 
@@ -182,12 +189,12 @@ export const createProduct = asyncHandler(async (req, res) => {
   const [result] = await pool.query(
     `INSERT INTO products
        (name, slug, brand, category, price, old_price, discount, image,
-        description, specifications, facets, stock)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        description, specifications, facets, details, stock)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.name, data.slug, data.brand, data.category, data.price,
       data.old_price, data.discount, data.image, data.description,
-      data.specifications, data.facets, data.stock,
+      data.specifications, data.facets, data.details, data.stock,
     ]
   );
 
@@ -225,12 +232,13 @@ export const updateProduct = asyncHandler(async (req, res) => {
   await pool.query(
     `UPDATE products SET
        name = ?, slug = ?, brand = ?, category = ?, price = ?, old_price = ?,
-       discount = ?, image = ?, description = ?, specifications = ?, facets = ?, stock = ?
+       discount = ?, image = ?, description = ?, specifications = ?, facets = ?,
+       details = ?, stock = ?
      WHERE id = ?`,
     [
       data.name, data.slug, data.brand, data.category, data.price,
       data.old_price, data.discount, data.image, data.description,
-      data.specifications, data.facets, data.stock, id,
+      data.specifications, data.facets, data.details, data.stock, id,
     ]
   );
 
