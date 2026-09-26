@@ -145,9 +145,6 @@ export default function ProductDetailPage() {
     );
   }
 
-  const specifications = Array.isArray(product.specifications)
-    ? product.specifications
-    : [];
   const facets = product.facets && typeof product.facets === "object" ? product.facets : null;
   const images = Array.isArray(product.images) && product.images.length > 0 ? product.images : [product.image];
   const inStock = Number(product.stock) > 0;
@@ -197,6 +194,20 @@ export default function ProductDetailPage() {
         value,
       ])
     : [];
+
+  /**
+   * The structured spec table the backend builds per category
+   * (`products.details`): CPU cores / threads / GHz / socket / TDP,
+   * RAM capacity + DDR generation + MHz, GPU VRAM + memory bus, panel
+   * specs ... Products stored before that column existed fall back to
+   * the raw facets so the section is never empty. Rows are normalised
+   * to `{ label, value }` because the facet fallback is a pair array.
+   */
+  const detailRows = (
+    Array.isArray(product.details) && product.details.length > 0
+      ? product.details
+      : facetRows
+  ).map((row) => (Array.isArray(row) ? { label: row[0], value: row[1] } : row));
 
   return (
     <div className="detail-page-wrap">
@@ -280,37 +291,26 @@ export default function ProductDetailPage() {
           </div>
 
           {product.description && (
-            <>
+            <div className="info-block">
               <h3>Description</h3>
               <p className="product-description">{product.description}</p>
-            </>
+            </div>
           )}
 
-          {specifications.length > 0 && (
-            <>
-              <h3>Key Features</h3>
-              <ul>
-                {specifications.map((spec) => (
-                  <li key={spec}>{spec}</li>
-                ))}
-              </ul>
-            </>
-          )}
-
-          {facetRows.length > 0 && (
-            <>
-              <h3>Specifications</h3>
+          {detailRows.length > 0 && (
+            <div className="info-block">
+              <h3>Product Details</h3>
               <table className="spec-table">
                 <tbody>
-                  {facetRows.map(([key, value]) => (
-                    <tr key={key}>
-                      <th>{key}</th>
-                      <td>{value}</td>
+                  {detailRows.map((row) => (
+                    <tr key={row.label}>
+                      <th scope="row">{row.label}</th>
+                      <td>{row.value}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </>
+            </div>
           )}
 
           <div className="assurances">
@@ -372,12 +372,13 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="payment-box">
-            <strong>Payment Options</strong>
+            <strong>Payment</strong>
             <div>
-              <span>COD</span>
-              <span>UPI (soon)</span>
-              <span>Cards (soon)</span>
+              <span className="cod">✓ &nbsp;Cash on Delivery</span>
             </div>
+            <small>
+              No online payment needed — hand over the cash when your order is delivered.
+            </small>
           </div>
         </aside>
       </main>

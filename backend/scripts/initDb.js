@@ -10,7 +10,7 @@ import mysql from "mysql2/promise";
 import bcrypt from "bcryptjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import dotenv from "dotenv";
 import { buildProductDetails } from "../utils/productDetails.js";
 
@@ -161,15 +161,17 @@ async function migrateLegacySchema(connection) {
 async function cleanupLegacyData(connection) {
   // Legacy products referenced /products/<name>.png which 404s — point
   // them at the category SVG placeholder from the categories table.
+  // Scoped to PNG (and other stale formats) so the linked .jpg photos are
+  // never knocked back to placeholders; the photo heal below only ever adds.
   const [pngRows] = await connection.query(
-    "SELECT COUNT(*) AS n FROM products WHERE image <> '' AND image NOT LIKE '%.svg'"
+    "SELECT COUNT(*) AS n FROM products WHERE image <> '' AND image NOT LIKE '%.svg' AND image NOT LIKE '%.jpg'"
   );
   if (Number(pngRows[0].n) > 0) {
     await connection.query(
       `UPDATE products p
        JOIN categories c ON c.name = p.category
        SET p.image = CONCAT('/products/', c.slug, '.svg')
-       WHERE p.image <> '' AND p.image NOT LIKE '%.svg'`
+       WHERE p.image <> '' AND p.image NOT LIKE '%.svg' AND p.image NOT LIKE '%.jpg'`
     );
     console.log(`  [migrate] repointed ${Number(pngRows[0].n)} legacy product image(s) to category SVGs`);
   }
@@ -289,6 +291,31 @@ async function init() {
     }
     if (pending.length > 0) {
       console.log(`  [seed] product details built for ${pending.length} product(s)`);
+    }
+
+    // 4b. Real product photography lives in <repo>/public/products/<slug>.jpg.
+    //     Products still pointing at a category placeholder SVG (the fallback
+    //     the seed used before photos existed) are upgraded to their photo.
+    //     Only placeholder paths are ever rewritten, so an image an admin
+    //     uploaded through the app is left alone. Idempotent.
+    const publicDir = path.join(__dirname, "..", "..", "public", "products");
+    const [stale] = await connectionB.query(
+      `SELECT id, slug, image FROM products
+        WHERE image = '' OR image IS NULL OR image LIKE '%.svg'`
+    );
+    let healed = 0;
+    for (const row of stale) {
+      if (!row.slug) continue;
+      const photo = path.join(publicDir, `${row.slug}.jpg`);
+      if (!existsSync(photo)) continue;
+      await connectionB.query("UPDATE products SET image = ? WHERE id = ?", [
+        `/products/${row.slug}.jpg`,
+        row.id,
+      ]);
+      healed++;
+    }
+    if (healed > 0) {
+      console.log(`  [seed] product photos linked for ${healed} product(s)`);
     }
 
     // 5. Admin account.

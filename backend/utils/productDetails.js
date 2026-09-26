@@ -191,7 +191,9 @@ function buildGpu(ctx) {
   const memoryType = ctx.match(/\b(GDDR\d|HBM\d?)\b/i);
   const bus = ctx.match(/\b(\d+-bit)\b/i);
   const cooling = ctx.match(/(\d+\s*Fans?)\b/i);
-  const features = ctx.specs.filter((item) => /DLSS|FSR|Ray Tracing|Reflex|G-Sync|FreeSync/i.test(item));
+  const features = ctx.specs.filter((item) =>
+    /DLSS|FSR|Ray Tracing|Reflex|G-Sync|FreeSync|Twin Frozr|Windforce/i.test(item)
+  );
 
   rows.push(["Graphics Processor", model]);
   rows.push(["VRAM", vram]);
@@ -284,7 +286,7 @@ function buildCooling(ctx) {
   const tdp = ctx.match(/(\d+\s*W)\s*TDP/i);
   const heatpipes = ctx.match(/(\d+)\s*Heatpipes?\b/i);
   const lighting = ctx.lighting();
-  const features = ctx.specs.filter((item) => /LCD Display|Zero RPM/i.test(item));
+  const features = ctx.specs.filter((item) => /LCD Display|iCUE|Zero RPM/i.test(item));
 
   rows.push(["Cooler Type", type]);
   rows.push(["Size", size]);
@@ -348,7 +350,7 @@ function buildPeripheral(ctx) {
     rows.push(["Layout", ctx.spec(/\b(TKL|Full Size|Compact|104-Key)\b/i)]);
     rows.push(["Switch Type", ctx.facet("switch")]);
     rows.push(["Lighting", lighting]);
-    rows.push(["Features", ctx.spec(/Spill Resistant/i)]);
+    rows.push(["Features", ctx.spec(/Spill Resistant|Blue Switches|Hot-Swap|Backlit/i)]);
   } else if (/headset/i.test(kind)) {
     rows.push(["Drivers", ctx.match(/(\d+\s*mm)\s*Drivers/i)]);
     rows.push(["Surround Sound", ctx.match(/((?:\d\.\d\s*)?Surround)/i)]);
