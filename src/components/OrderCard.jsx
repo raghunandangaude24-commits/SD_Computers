@@ -1,4 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { XCircle } from "lucide-react";
+import Modal from "./Modal.jsx";
+import { orderService, isCancellable } from "../services/orderService.js";
 
 function formatDate(value) {
   try {
@@ -14,9 +18,37 @@ function formatDate(value) {
 
 /**
  * Compact summary card for one order (Orders page + profile).
+ *
+ * `onCancel` is optional. When supplied, orders that are still cancellable
+ * get a Cancel button backed by a confirmation dialog; the updated order
+ * the API returns is handed back to the parent so its list can be patched
+ * in place instead of refetched.
  */
-export default function OrderCard({ order }) {
+export default function OrderCard({ order, onCancel }) {
   const date = formatDate(order.createdAt);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const cancellable = Boolean(onCancel) && isCancellable(order);
+
+  const confirmCancel = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+
+    try {
+      const updated = await orderService.cancel(order.id);
+      setConfirmOpen(false);
+      onCancel(updated);
+    } catch (err) {
+      // Shipped between render and confirm, or the network dropped —
+      // keep the dialog open and show why.
+      setError(err.message || "Could not cancel this order.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className="order-card">
@@ -58,7 +90,55 @@ export default function OrderCard({ order }) {
         <Link className="btn btn-outline" to={`/orders/${order.id}`}>
           View Details
         </Link>
+        {cancellable && (
+          <button
+            type="button"
+            className="btn btn-danger-outline"
+            onClick={() => {
+              setError("");
+              setConfirmOpen(true);
+            }}
+          >
+            <XCircle size={15} /> Cancel
+          </button>
+        )}
       </div>
+
+      <Modal
+        open={confirmOpen}
+        onClose={() => !busy && setConfirmOpen(false)}
+        title={`Cancel order #${order.id}?`}
+        footer={
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => setConfirmOpen(false)}
+              disabled={busy}
+            >
+              Keep Order
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={confirmCancel}
+              disabled={busy}
+            >
+              {busy ? "Cancelling..." : "Yes, Cancel Order"}
+            </button>
+          </div>
+        }
+      >
+        <p>
+          This cancels <strong>Order #{order.id}</strong> — {order.itemCount}{" "}
+          item{order.itemCount === 1 ? "" : "s"} worth {order.totalAmount}. The
+          items go back into stock and nothing is charged, since you pay cash
+          on delivery.
+        </p>
+        <p className="modal-note">This can't be undone.</p>
+
+        {error && <div className="order-cancel-error">{error}</div>}
+      </Modal>
     </div>
   );
 }

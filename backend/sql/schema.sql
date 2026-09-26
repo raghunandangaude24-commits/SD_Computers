@@ -197,7 +197,7 @@ CREATE TABLE IF NOT EXISTS orders (
   shipping_state VARCHAR(120) NOT NULL,
   shipping_pincode VARCHAR(10) NOT NULL,
   payment_method VARCHAR(30) NOT NULL DEFAULT 'cod',
-  payment_status ENUM('pending', 'paid', 'failed', 'refunded') NOT NULL DEFAULT 'pending',
+  payment_status ENUM('pending', 'paid', 'failed', 'refunded', 'cancelled') NOT NULL DEFAULT 'pending',
   order_status ENUM('pending', 'confirmed', 'shipped', 'delivered', 'cancelled') NOT NULL DEFAULT 'pending',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

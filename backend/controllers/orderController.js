@@ -181,6 +181,96 @@ export const createOrder = asyncHandler(async (req, res) => {
 });
 
 /**
+ * POST /api/orders/:id/cancel  (protected)
+ *
+ * Cancels the caller's own order while it is still cancellable and puts
+ * the reserved stock back on the shelf.
+ *
+ * Only "pending" and "confirmed" orders can be cancelled — once a parcel
+ * has been handed to the courier ("shipped") or signed for ("delivered")
+ * it is out of our hands. Cash on Delivery is never charged up front, so
+ * the payment is simply closed out alongside the order (no refund exists
+ * to record).
+ */
+const CANCELLABLE_STATUSES = ["pending", "confirmed"];
+
+export const cancelOrder = asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  if (!isValidId(id)) {
+    return res.status(400).json({ success: false, message: "Invalid order id" });
+  }
+
+  // Ownership check first — never reveal whether the id exists elsewhere.
+  const [orderRows] = await pool.query(
+    "SELECT id, order_status FROM orders WHERE id = ? AND user_id = ? LIMIT 1",
+    [id, req.user.id]
+  );
+
+  if (!orderRows[0]) {
+    return res.status(404).json({ success: false, message: "Order not found" });
+  }
+
+  if (!CANCELLABLE_STATUSES.includes(orderRows[0].order_status)) {
+    return res.status(409).json({
+      success: false,
+      message: `This order can no longer be cancelled — its status is "${orderRows[0].order_status}".`,
+    });
+  }
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // Guarded update: if another request cancelled/shipped this order
+    // between the check above and here, affectedRows is 0 and we bail
+    // instead of double-restoring stock.
+    const [updated] = await connection.query(
+      `UPDATE orders SET order_status = 'cancelled', payment_status = 'cancelled'
+        WHERE id = ? AND user_id = ? AND order_status IN ('pending', 'confirmed')`,
+      [id, req.user.id]
+    );
+
+    if (updated.affectedRows === 0) {
+      const err = new Error("Order is no longer cancellable");
+      err.status = 409;
+      err.clientMessage = "This order can no longer be cancelled.";
+      throw err;
+    }
+
+    const [itemRows] = await connection.query(
+      "SELECT product_id, quantity FROM order_items WHERE order_id = ?",
+      [id]
+    );
+
+    for (const item of itemRows) {
+      await connection.query(
+        "UPDATE products SET stock = stock + ? WHERE id = ?",
+        [Number(item.quantity), item.product_id]
+      );
+    }
+
+    await connection.commit();
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
+
+  const [freshOrder] = await pool.query("SELECT * FROM orders WHERE id = ?", [id]);
+  const [freshItems] = await pool.query(
+    "SELECT * FROM order_items WHERE order_id = ? ORDER BY id ASC",
+    [id]
+  );
+
+  return res.json({
+    success: true,
+    message: "Order cancelled",
+    order: toOrderJson(freshOrder[0], freshItems),
+  });
+});
+
+/**
  * GET /api/orders  (protected)
  * Lists the current user's orders, newest first, with their items.
  */

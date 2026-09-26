@@ -33,7 +33,10 @@ export default function Register() {
   const [success, setSuccess] = useState(null);
   const redirectTimer = useRef(null);
 
-  if (authReady && user) {
+  // Already signed in? Go home (after the stored session is validated).
+  // `success` holds the redirect for the ~1s the confirmation banner shows,
+  // otherwise this guard would fire the instant signup sets `user`.
+  if (authReady && user && !success) {
     return <Navigate to="/" replace />;
   }
 
@@ -72,9 +75,10 @@ export default function Register() {
         password,
       });
 
+      // Account is created and already signed in — straight to the store.
       setSuccess("Account created successfully!");
       redirectTimer.current = setTimeout(() => {
-        navigate("/login?registered=1", { replace: true });
+        navigate("/", { replace: true });
       }, 1200);
     } catch (err) {
       setError(err.message || "Registration failed. Please try again.");
@@ -118,7 +122,7 @@ export default function Register() {
         {/* SUCCESS */}
         {success && (
           <div className="auth-message success">
-            {success} Redirecting to login...
+            {success} Taking you to the store...
           </div>
         )}
 

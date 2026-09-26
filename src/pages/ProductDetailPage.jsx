@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ShoppingCart, Box, Zap, Star } from "lucide-react";
 import { fetchProduct, searchProducts } from "../services/productService.js";
+import { deliveryService } from "../services/deliveryService.js";
 import { reviewService } from "../services/reviewService.js";
 import PageState from "../components/PageState.jsx";
 import Breadcrumbs from "../components/Breadcrumbs.jsx";
@@ -31,6 +32,10 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [addedMessage, setAddedMessage] = useState("");
 
+  // "Check Delivery" — pincode lookup against GET /api/delivery/check.
+  const [pincode, setPincode] = useState("");
+  const [pinState, setPinState] = useState({ status: "idle" });
+
   const [reviews, setReviews] = useState([]);
   const [reviewSummary, setReviewSummary] = useState({ rating: 0, reviewCount: 0 });
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
@@ -51,6 +56,7 @@ export default function ProductDetailPage() {
     setAddedMessage("");
     setReviewError("");
     setReviewMessage("");
+    setPinState({ status: "idle" });
 
     fetchProduct(productId)
       .then((data) => {
@@ -159,6 +165,35 @@ export default function ProductDetailPage() {
     addToCart(product, quantity)
       .then(() => navigate("/cart"))
       .catch((err) => setAddedMessage(err.message || "Could not add to cart"));
+  };
+
+  /**
+   * Validates the PIN client-side (6 digits) so obvious typos don't cost a
+   * round-trip, then asks the backend whether the code is serviceable and
+   * how long delivery takes.
+   */
+  const checkDelivery = (event) => {
+    event.preventDefault();
+    const value = pincode.trim();
+
+    if (!/^[1-9][0-9]{5}$/.test(value)) {
+      setPinState({
+        status: "error",
+        message: "Enter a valid 6-digit PIN code.",
+      });
+      return;
+    }
+
+    setPinState({ status: "checking" });
+    deliveryService
+      .checkPincode(value)
+      .then((data) => setPinState({ status: "ok", data }))
+      .catch((err) =>
+        setPinState({
+          status: "error",
+          message: err.message || "Could not check this PIN code.",
+        })
+      );
   };
 
   const submitReview = async (event) => {
@@ -364,11 +399,41 @@ export default function ProductDetailPage() {
 
           <div className="delivery">
             <strong>▱ &nbsp; Check Delivery</strong>
-            <div>
-              <input placeholder="Enter your pincode" aria-label="Pincode" />
-              <b>Check</b>
-            </div>
-            <small>Delivery options will appear once the pincode is entered.</small>
+            <form onSubmit={checkDelivery}>
+              <div>
+                <input
+                  value={pincode}
+                  onChange={(event) => {
+                    // digits only, capped at 6 — matches the backend shape
+                    setPincode(event.target.value.replace(/\D/g, "").slice(0, 6));
+                    if (pinState.status !== "idle") setPinState({ status: "idle" });
+                  }}
+                  placeholder="Enter your pincode"
+                  aria-label="Pincode"
+                  inputMode="numeric"
+                  autoComplete="postal-code"
+                  maxLength={6}
+                />
+                <button type="submit" disabled={pinState.status === "checking"}>
+                  {pinState.status === "checking" ? "Checking…" : "Check"}
+                </button>
+              </div>
+
+              {pinState.status === "ok" && pinState.data ? (
+                <small className="pin-ok">
+                  <b>✓ Serviceable</b> — delivers in{" "}
+                  <b>{pinState.data.etaLabel}</b> to{" "}
+                  <b>{pinState.data.pincode}</b> ({pinState.data.zone}) · Cash
+                  on Delivery available.
+                </small>
+              ) : pinState.status === "error" ? (
+                <small className="pin-err">{pinState.message}</small>
+              ) : (
+                <small>
+                  Delivery options will appear once the pincode is entered.
+                </small>
+              )}
+            </form>
           </div>
 
           <div className="payment-box">

@@ -319,6 +319,30 @@
   background: var(--purple-wash);
 }
 
+/* Destructive actions (order cancellation). The outline variant is the
+   quiet default in a row of controls; the solid one is only used as the
+   final confirmation inside a dialog. */
+.btn-danger-outline {
+  border: 1px solid var(--danger-border);
+  background: transparent;
+  color: var(--danger);
+}
+
+.btn-danger-outline:hover {
+  background: rgba(255, 107, 129, 0.1);
+}
+
+.btn-danger {
+  border: 0;
+  background: var(--danger-strong);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;

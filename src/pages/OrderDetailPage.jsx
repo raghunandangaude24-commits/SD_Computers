@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { Package, MapPin, Banknote } from "lucide-react";
-import { orderService } from "../services/orderService.js";
+import { Package, MapPin, Banknote, XCircle } from "lucide-react";
+import { orderService, isCancellable } from "../services/orderService.js";
 import PageState from "../components/PageState.jsx";
 import Breadcrumbs from "../components/Breadcrumbs.jsx";
+import Modal from "../components/Modal.jsx";
 
 function formatDate(value) {
   try {
@@ -20,6 +21,44 @@ function formatDate(value) {
 }
 
 /**
+ * Wording + tone for the Payment panel, derived from fulfilment state.
+ *
+ * Cash on Delivery only ever has two honest outcomes — cash still to be
+ * collected, or no cash at all — so the panel must never print payment_status
+ * raw: a cancelled order would otherwise keep telling the shopper to "pay when
+ * your order arrives". The tone drives the colour (amber = waiting,
+ * green = collected, red = closed without payment).
+ */
+function paymentSummary(order) {
+  if (order.orderStatus === "cancelled") {
+    return {
+      tone: "cancelled",
+      label: "cancelled",
+      detail: "This order was cancelled — nothing is due.",
+    };
+  }
+
+  if (order.paymentStatus === "paid") {
+    return {
+      tone: "paid",
+      label: "paid",
+      detail: `Paid in full — ${order.totalAmount} collected in cash.`,
+    };
+  }
+
+  return {
+    tone: "pending",
+    label: order.paymentStatus,
+    detail: (
+      <>
+        <strong>Cash on Delivery</strong> — pay {order.totalAmount} in cash when
+        your order arrives.
+      </>
+    ),
+  };
+}
+
+/**
  * Order detail page (protected). Users can only view their own orders —
  * the backend enforces ownership and returns 404 otherwise.
  */
@@ -32,6 +71,11 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retryCount, setRetryCount] = useState(0);
+
+  // Order cancellation — confirmation dialog + in-flight state.
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -58,6 +102,27 @@ export default function OrderDetailPage() {
     };
   }, [id, retryCount]);
 
+  /**
+   * Confirmed cancellation: swap in the order the backend returns so the
+   * status badge flips to "cancelled" without a refetch. A 409 (e.g. it
+   * shipped while the dialog was open) is shown inline instead.
+   */
+  const confirmCancel = async () => {
+    if (cancelling) return;
+    setCancelling(true);
+    setCancelError("");
+
+    try {
+      const updated = await orderService.cancel(order.id);
+      setOrder(updated);
+      setConfirmOpen(false);
+    } catch (err) {
+      setCancelError(err.message || "Could not cancel this order.");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   if (loading) {
     return <PageState variant="loading" title="Loading order..." />;
   }
@@ -76,6 +141,8 @@ export default function OrderDetailPage() {
   if (!order) {
     return <PageState variant="empty" title="Order not found." />;
   }
+
+  const payment = paymentSummary(order);
 
   return (
     <div className="listing-page order-detail-page">
@@ -106,9 +173,28 @@ export default function OrderDetailPage() {
           <span className={`order-status order-status-${order.orderStatus || "pending"}`}>
             {order.orderStatus || "Placed"}
           </span>
-          <span className="order-status order-status-payment">
+          <span
+            className={`order-status ${
+              order.paymentStatus === "cancelled"
+                ? "order-status-cancelled"
+                : "order-status-payment"
+            }`}
+          >
             {String(order.paymentMethod).toUpperCase()} • {order.paymentStatus}
           </span>
+
+          {isCancellable(order) && (
+            <button
+              type="button"
+              className="btn btn-danger-outline"
+              onClick={() => {
+                setCancelError("");
+                setConfirmOpen(true);
+              }}
+            >
+              <XCircle size={15} /> Cancel Order
+            </button>
+          )}
         </div>
       </div>
 
@@ -150,17 +236,52 @@ export default function OrderDetailPage() {
           <h2 className="payment-heading">
             <Banknote size={16} className="inline-icon" /> Payment
           </h2>
-          <p>
-            <strong>Cash on Delivery</strong> — pay {order.totalAmount} in cash when
-            your order arrives.
+          <p>{payment.detail}</p>
+          <p className={`payment-status payment-status--${payment.tone}`}>
+            Status: {payment.label}
           </p>
-          <p className="payment-status">Status: {order.paymentStatus}</p>
 
           <Link to="/search" className="btn btn-outline">
             Continue Shopping
           </Link>
         </aside>
       </div>
+
+      <Modal
+        open={confirmOpen}
+        onClose={() => !cancelling && setConfirmOpen(false)}
+        title={`Cancel order #${order.id}?`}
+        footer={
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => setConfirmOpen(false)}
+              disabled={cancelling}
+            >
+              Keep Order
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={confirmCancel}
+              disabled={cancelling}
+            >
+              {cancelling ? "Cancelling..." : "Yes, Cancel Order"}
+            </button>
+          </div>
+        }
+      >
+        <p>
+          This cancels <strong>Order #{order.id}</strong> — {order.itemCount}{" "}
+          item{order.itemCount === 1 ? "" : "s"} worth {order.totalAmount}. The
+          items go back into stock and nothing is charged, since you pay cash
+          on delivery.
+        </p>
+        <p className="modal-note">This can't be undone.</p>
+
+        {cancelError && <div className="order-cancel-error">{cancelError}</div>}
+      </Modal>
     </div>
   );
 }

@@ -623,9 +623,12 @@
     font-size: 11.5px;
 }
 
-.delivery>div {
-    display: flex;
+.delivery form {
     margin-top: 12px;
+}
+
+.delivery form > div {
+    display: flex;
 }
 
 .delivery input {
@@ -638,12 +641,23 @@
     font-size: 11px;
 }
 
+.delivery input:focus {
+    outline: none;
+    border-color: #7825d0;
+}
+
 .delivery button {
     background: #7626d6;
     border: 0;
     color: white;
     font-size: 11px;
     padding: 0 10px;
+    cursor: pointer;
+}
+
+.delivery button:disabled {
+    opacity: .7;
+    cursor: default;
 }
 
 .delivery small {
@@ -655,6 +669,10 @@
 
 .delivery b {
     color: #70db36;
+}
+
+.delivery .pin-err {
+    color: #ff6b81;
 }
 
 .cart-feedback {

@@ -1,5 +1,13 @@
 import { apiGet, apiPost } from "./apiClient.js";
 
+/** Order statuses the customer is still allowed to cancel themselves. */
+export const CANCELLABLE_STATUSES = ["pending", "confirmed"];
+
+/** True when this order can still be cancelled from the UI. */
+export function isCancellable(order) {
+  return CANCELLABLE_STATUSES.includes(order?.orderStatus || "pending");
+}
+
 /**
  * Order API (protected).
  *
@@ -26,6 +34,16 @@ export const orderService = {
   /** GET /api/orders/:id — one owned order. */
   async get(id) {
     const data = await apiGet(`/orders/${id}`);
+    return data.order;
+  },
+
+  /**
+   * POST /api/orders/:id/cancel — cancel a pending/confirmed order and
+   * return the stock. Throws with the backend message (e.g. already
+   * shipped) so the caller can show it directly.
+   */
+  async cancel(id) {
+    const data = await apiPost(`/orders/${id}/cancel`);
     return data.order;
   },
 };

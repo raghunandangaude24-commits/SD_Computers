@@ -42,11 +42,13 @@ export const register = asyncHandler(async (req, res) => {
   const normalizedEmail = normalizeEmail(email);
   const hashedPassword = await bcrypt.hash(password, PASSWORD_HASH_ROUNDS);
 
+  let userId;
   try {
-    await pool.query(
+    const [result] = await pool.query(
       "INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)",
       [cleanString(name), normalizedEmail, cleanString(phone), hashedPassword]
     );
+    userId = result.insertId;
   } catch (err) {
     // Catch duplicate email race condition (unique key on users.email)
     if (err && err.code === "ER_DUP_ENTRY") {
@@ -58,9 +60,22 @@ export const register = asyncHandler(async (req, res) => {
     throw err;
   }
 
+  // Sign the new account in straight away so the store can send it to the
+  // homepage instead of bouncing it back through the login page.
+  const [rows] = await pool.query("SELECT * FROM users WHERE id = ?", [userId]);
+  const user = rows[0];
+
+  const token = jwt.sign(
+    { id: user.id, name: user.name, email: user.email, role: user.role ?? "customer" },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+
   return res.status(201).json({
     success: true,
     message: "Registration successful",
+    token,
+    user: toPublicUser(user),
   });
 });
 

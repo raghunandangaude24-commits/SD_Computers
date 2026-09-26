@@ -359,7 +359,18 @@ export default function ProfilePage() {
             ) : (
               <div className="orders-list">
                 {orders.map((order) => (
-                  <OrderCard key={order.id} order={order} />
+                  <OrderCard
+                    key={order.id}
+                    order={order}
+                    // Same in-place patch as the Orders page.
+                    onCancel={(updated) =>
+                      setOrders((prev) =>
+                        prev.map((item) =>
+                          item.id === updated.id ? updated : item
+                        )
+                      )
+                    }
+                  />
                 ))}
                 <Link to="/orders" className="all-orders-link">
                   View all orders →

@@ -51,6 +51,44 @@ async function ensureColumn(connection, table, column, definition) {
 }
 
 /**
+ * Append one member to an existing ENUM column (idempotent).
+ *
+ * MySQL has no `ALTER ... ADD VALUE`, so the column is rebuilt with the
+ * extended member list. Existing members are kept in their current order —
+ * every stored row still matches and only the new member is appended, so
+ * no stored value is ever rewritten.
+ */
+async function ensureEnumValue(connection, table, column, value) {
+  const [rows] = await connection.query(
+    `SELECT COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT
+       FROM information_schema.columns
+      WHERE table_schema = ? AND table_name = ? AND column_name = ?`,
+    [DB_NAME, table, column]
+  );
+  const meta = rows[0];
+  if (!meta) return; // table/column doesn't exist yet
+
+  const parsed = /^enum\((.*)\)$/i.exec(meta.COLUMN_TYPE);
+  if (!parsed) return; // not an ENUM — leave it alone
+
+  const members = parsed[1].split(",").map((m) => m.trim());
+  if (members.some((m) => m.toLowerCase() === `'${value}'`.toLowerCase())) return;
+
+  const nullable = meta.IS_NULLABLE === "YES";
+  const next = [...members, `'${value}'`].join(", ");
+
+  let sql = `ALTER TABLE \`${table}\` MODIFY COLUMN \`${column}\` ENUM(${next})`;
+  sql += nullable ? " NULL" : " NOT NULL";
+  if (meta.COLUMN_DEFAULT !== null && meta.COLUMN_DEFAULT !== undefined) {
+    const raw = String(meta.COLUMN_DEFAULT);
+    sql += /^\d+$/.test(raw) ? ` DEFAULT ${raw}` : ` DEFAULT '${raw.replace(/'/g, "''")}'`;
+  }
+
+  await connection.query(sql);
+  console.log(`  [migrate] ${table}.${column} += '${value}'`);
+}
+
+/**
  * Bring an old first-schema database in line with the current schema
  * without dropping anything. Only additive changes are made.
  */
@@ -147,6 +185,23 @@ async function migrateLegacySchema(connection) {
     "updated_at",
     "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
   );
+
+  // payment_status: cancelling an order closes it out — Cash on Delivery
+  // was never charged, so a cancelled order must not sit on 'pending'
+  // forever. Adds the enum member (existing rows keep their values) and
+  // settles the orders that were cancelled before it existed.
+  if (await tableExists(connection, "orders")) {
+    await ensureEnumValue(connection, "orders", "payment_status", "cancelled");
+    const [settled] = await connection.query(
+      `UPDATE orders SET payment_status = 'cancelled'
+        WHERE order_status = 'cancelled' AND payment_status = 'pending'`
+    );
+    if (settled.affectedRows > 0) {
+      console.log(
+        `  [migrate] settled payment status on ${settled.affectedRows} cancelled order(s)`
+      );
+    }
+  }
 
   // Legacy seed artifacts: dead PNG images + duplicate names.
   await cleanupLegacyData(connection);

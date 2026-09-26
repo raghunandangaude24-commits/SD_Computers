@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Heart, ShoppingCart, Box } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useStore } from "../store/StoreContext.jsx";
 import RatingStars from "./RatingStars.jsx";
 
@@ -16,6 +16,7 @@ import RatingStars from "./RatingStars.jsx";
 export default function ProductCard({ product }) {
   const { addToCart, toggleWishlist, isWishlisted } = useStore();
   const [imageFailed, setImageFailed] = useState(false);
+  const navigate = useNavigate();
 
   if (!product) return null;
 
@@ -41,8 +42,20 @@ export default function ProductCard({ product }) {
     toggleWishlist(product);
   };
 
+  /**
+   * The card reads as one clickable target (`cursor: pointer`), but only
+   * the image and title were wrapped in links — so clicking the category,
+   * specs, price or any empty gap did nothing. Route those clicks through
+   * here; anything interactive inside the card (links, Add to Cart,
+   * wishlist) opts out so it keeps its own behaviour.
+   */
+  const openProduct = (event) => {
+    if (event.target.closest("a, button")) return;
+    navigate(`/product/${product.id}`);
+  };
+
   return (
-    <article className="product-card">
+    <article className="product-card" onClick={openProduct}>
       <button
         type="button"
         className={`favorite ${wishlisted ? "active" : ""}`}

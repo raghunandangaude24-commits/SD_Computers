@@ -1077,6 +1077,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  flex-wrap: wrap;
   padding: 12px 18px;
   border-top: 1px solid var(--line-soft);
 }
@@ -1264,8 +1265,21 @@
   margin-top: 20px;
 }
 
-.payment-status {
+/* Colour the payment state by outcome rather than leaving it flat grey —
+   `.order-shipping p` out-specifies a bare `.payment-status`, so these are
+   scoped to match it. Amber = cash still to be collected, green = collected,
+   red = closed without payment (the old rule painted every state green,
+   so a cancelled order still read as a success). */
+.order-shipping .payment-status--pending {
+  color: var(--star);
+}
+
+.order-shipping .payment-status--paid {
   color: var(--success);
+}
+
+.order-shipping .payment-status--cancelled {
+  color: var(--danger);
 }
 
 .inline-icon {
@@ -1783,6 +1797,45 @@
 .modal-foot {
   padding: 14px 18px;
   border-top: 1px solid var(--line);
+}
+
+/* Action row inside a dialog footer: secondary on the left, the
+   confirming/destructive action pushed right. */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modal-body p {
+  margin: 0 0 10px;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.modal-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Scoping to .modal-body outranks the generic `.modal-body p` rule. */
+.modal-body .modal-note {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Inline failure message inside the cancel dialog (e.g. 409 — the order
+   shipped while it was open). */
+.order-cancel-error {
+  margin-top: 12px;
+  padding: 9px 11px;
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 86, 104, 0.1);
+  color: var(--danger);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 /* ------------------------------------------------------------

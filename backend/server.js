@@ -21,6 +21,7 @@ import orderRoutes from "./routes/orderRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
+import deliveryRoutes from "./routes/deliveryRoutes.js";
 import {
   notFoundHandler,
   errorHandler,
@@ -63,6 +64,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/delivery", deliveryRoutes);
 
 // --- 404 + centralized error handling ---
 app.use(notFoundHandler);

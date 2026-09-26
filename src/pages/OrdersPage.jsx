@@ -70,7 +70,17 @@ export default function OrdersPage() {
     content = (
       <div className="orders-list">
         {orders.map((order) => (
-          <OrderCard key={order.id} order={order} />
+          <OrderCard
+            key={order.id}
+            order={order}
+            // Patch in the order the API returns — the badge flips to
+            // "cancelled" without refetching the whole list.
+            onCancel={(updated) =>
+              setOrders((prev) =>
+                prev.map((item) => (item.id === updated.id ? updated : item))
+              )
+            }
+          />
         ))}
       </div>
     );

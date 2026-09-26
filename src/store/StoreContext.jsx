@@ -149,10 +149,16 @@ export function StoreProvider({ children }) {
     };
   }, []);
 
-  /** POST /api/auth/login + merge guest cart/wishlist into the account. */
-  const login = useCallback(async (email, password, remember = true) => {
-    const data = await authService.login(email, password, remember);
-
+  /**
+   * Push a freshly-created session into the store: merge whatever the
+   * visitor built up as a guest into the account, then pull the server
+   * cart/wishlist down. Shared by login and register — a brand new
+   * account should keep the guest cart exactly like a returning one.
+   *
+   * The JWT itself is persisted by authService before this runs (the
+   * "remember me" choice lives with login).
+   */
+  const hydrateSession = useCallback(async (data) => {
     const guestCart = readGuest(GUEST_CART_KEY);
     if (guestCart.length > 0) {
       try {
@@ -192,9 +198,23 @@ export function StoreProvider({ children }) {
     return data;
   }, []);
 
+  /** POST /api/auth/login + merge guest cart/wishlist into the account. */
+  const login = useCallback(
+    async (email, password, remember = true) => {
+      const data = await authService.login(email, password, remember);
+      return hydrateSession(data);
+    },
+    [hydrateSession]
+  );
+
+  /** POST /api/auth/register — creates the account, signs it in and
+   *  hydrates the store, so the page can go straight to the homepage. */
   const register = useCallback(
-    (payload) => authService.register(payload),
-    []
+    async (payload) => {
+      const data = await authService.register(payload);
+      return hydrateSession(data);
+    },
+    [hydrateSession]
   );
 
   const logout = useCallback(async () => {

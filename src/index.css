@@ -36,6 +36,9 @@
   /* Feedback */
   --success: #74dd38;
   --danger: #ffb3bc;
+  /* Solid red for filled destructive buttons — --danger is a light pink
+     tuned for text on dark panels and fails contrast with white text. */
+  --danger-strong: #cc3d48;
   --danger-border: rgba(255, 86, 104, 0.35);
   --star: #ffbf00;
 

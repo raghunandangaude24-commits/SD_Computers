@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
   Mail,
   Lock,
@@ -15,7 +15,6 @@ import { useStore } from "../store/StoreContext.jsx";
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
   const { login, user, authReady } = useStore();
 
   const [email, setEmail] = useState("");
@@ -24,9 +23,6 @@ export default function Login() {
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // "?registered=1" is set by the Register page after a successful signup.
-  const registered = searchParams.get("registered") === "1";
 
   // Already signed in? Go home (after the stored session is validated).
   if (authReady && user) {
@@ -81,13 +77,6 @@ export default function Login() {
         <p>
           Login to your account to continue
         </p>
-
-        {/* SUCCESS (after registration) */}
-        {registered && (
-          <div className="auth-message success">
-            Account created successfully. Please login to continue.
-          </div>
-        )}
 
         {/* ERROR */}
         {error && (

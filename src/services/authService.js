@@ -17,9 +17,17 @@ export const authService = {
     return data;
   },
 
-  /** POST /api/auth/register */
+  /** POST /api/auth/register — stores the JWT + user so a new account is
+   *  signed in the moment it lands on the homepage. */
   async register({ name, email, phone, password }) {
-    return apiPost("/auth/register", { name, email, phone, password });
+    const data = await apiPost("/auth/register", {
+      name,
+      email,
+      phone,
+      password,
+    });
+    if (data?.token) setSession(data.token, data.user, { persistent: true });
+    return data;
   },
 
   /** GET /api/auth/me — current authenticated user. */
